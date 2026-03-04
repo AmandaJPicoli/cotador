@@ -1,5 +1,8 @@
 """
 Manager de Scrapers — orquestra cotações em paralelo
+Suporta dois tipos de scraper:
+  1. BaseScraper (Playwright) — portais B2B com login
+  2. Marketplace (HTTP puro)  — ex: PitStop via API VTEX, retorna lista de cotações
 """
 import asyncio
 import time
@@ -8,16 +11,16 @@ from playwright.async_api import async_playwright
 
 from models import Cotacao, ResultadoCotacao, StatusCotacao
 from scrapers.base_scraper import BaseScraper
+from scrapers.pitstop import PitStopScraper
 
 # ── Registre aqui todos os seus scrapers ───────────────────────────────────
 # from scrapers.distribuidor_a import DistribuidorA
 # from scrapers.distribuidor_b import DistribuidorB
-# from scrapers.distribuidor_template import DistribuidorExemplo
 
-SCRAPERS_REGISTRADOS: list[type[BaseScraper]] = [
+SCRAPERS_REGISTRADOS = [
+    PitStopScraper,          # ← HTTP puro, sem login
     # DistribuidorA,
     # DistribuidorB,
-    # DistribuidorExemplo,
 ]
 
 logger = logging.getLogger(__name__)
@@ -25,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 class CotacaoManager:
 
-    def __init__(self, scrapers: list[type[BaseScraper]] | None = None):
+    def __init__(self, scrapers=None):
         self.scrapers_classes = scrapers or SCRAPERS_REGISTRADOS
 
     async def cotar(
@@ -33,14 +36,9 @@ class CotacaoManager:
         referencia: str,
         distribuidores: list[str] | None = None,
     ) -> ResultadoCotacao:
-        """
-        Executa cotações em paralelo nos distribuidores selecionados.
-        distribuidores=None → consulta todos registrados.
-        """
         inicio = time.monotonic()
-        referencia = referencia.strip().upper()
+        referencia = referencia.strip()
 
-        # Filtra scrapers desejados
         classes = self.scrapers_classes
         if distribuidores:
             classes = [c for c in classes if c.DISTRIBUIDOR_ID in distribuidores]
@@ -48,48 +46,66 @@ class CotacaoManager:
         if not classes:
             return ResultadoCotacao(referencia=referencia)
 
-        # Roda tudo em paralelo com um único browser (economiza memória)
-        async with async_playwright() as pw:
-            browser = await pw.chromium.launch(
-                headless=True,
-                args=["--no-sandbox", "--disable-dev-shm-usage"],  # necessário na nuvem
-            )
+        # Separa scrapers por tipo
+        scrapers_playwright = [c for c in classes if not getattr(c, "is_marketplace", False)]
+        scrapers_api        = [c for c in classes if getattr(c, "is_marketplace", False)]
 
-            tarefas = []
-            instancias = []
+        tarefas_api = [cls().cotar_multiplo(referencia) for cls in scrapers_api]
 
-            for cls in classes:
-                instancia = cls()
-                await instancia.inicializar(browser)
-                instancias.append(instancia)
-                tarefas.append(instancia.cotar(referencia))
-
-            resultados: list[Cotacao] = await asyncio.gather(*tarefas, return_exceptions=True)
-
-            # Finaliza contextos
-            for inst in instancias:
-                await inst.finalizar()
-
-            await browser.close()
-
-        # Trata exceções que vazaram do gather
         cotacoes_limpas: list[Cotacao] = []
-        for i, r in enumerate(resultados):
+        resultados_pw = []
+
+        if scrapers_playwright:
+            async with async_playwright() as pw:
+                browser = await pw.chromium.launch(
+                    headless=True,
+                    args=["--no-sandbox", "--disable-dev-shm-usage"],
+                )
+                instancias_pw = []
+                tarefas_pw = []
+                for cls in scrapers_playwright:
+                    inst = cls()
+                    await inst.inicializar(browser)
+                    instancias_pw.append(inst)
+                    tarefas_pw.append(inst.cotar(referencia))
+
+                resultados_pw, resultados_api = await asyncio.gather(
+                    asyncio.gather(*tarefas_pw, return_exceptions=True),
+                    asyncio.gather(*tarefas_api, return_exceptions=True),
+                )
+
+                for inst in instancias_pw:
+                    await inst.finalizar()
+                await browser.close()
+        else:
+            # Sem Playwright — só chamadas de API
+            resultados_api = await asyncio.gather(*tarefas_api, return_exceptions=True)
+
+        # Processa Playwright
+        for i, r in enumerate(resultados_pw):
+            nome = scrapers_playwright[i].DISTRIBUIDOR_NOME
             if isinstance(r, Exception):
-                nome = classes[i].DISTRIBUIDOR_NOME
-                logger.error(f"[{nome}] Exceção não tratada: {r}")
+                logger.error(f"[{nome}] Exceção: {r}")
                 cotacoes_limpas.append(Cotacao(
-                    distribuidor=nome,
-                    status=StatusCotacao.ERRO,
-                    erro_msg=str(r),
+                    distribuidor=nome, status=StatusCotacao.ERRO, erro_msg=str(r),
                 ))
             else:
                 cotacoes_limpas.append(r)
 
-        # Ordena: com preço primeiro (menor → maior), sem preço por último
-        cotacoes_ordenadas = self._ordenar_cotacoes(cotacoes_limpas)
+        # Processa API (lista de Cotacao por scraper)
+        for i, r in enumerate(resultados_api):
+            nome = scrapers_api[i].DISTRIBUIDOR_NOME
+            if isinstance(r, Exception):
+                logger.error(f"[{nome}] Exceção: {r}")
+                cotacoes_limpas.append(Cotacao(
+                    distribuidor=nome, status=StatusCotacao.ERRO, erro_msg=str(r),
+                ))
+            elif isinstance(r, list):
+                cotacoes_limpas.extend(r)
+            else:
+                cotacoes_limpas.append(r)
 
-        # Marca menor preço
+        cotacoes_ordenadas = self._ordenar_cotacoes(cotacoes_limpas)
         self._marcar_melhor_preco(cotacoes_ordenadas)
 
         tempo_ms = int((time.monotonic() - inicio) * 1000)
@@ -107,21 +123,18 @@ class CotacaoManager:
 
     def _ordenar_cotacoes(self, cotacoes: list[Cotacao]) -> list[Cotacao]:
         def chave(c: Cotacao):
-            # Prioridade: tem preço + estoque > tem preço sem estoque > erro/não encontrado
             if c.preco is not None and (c.estoque or 0) > 0:
                 return (0, c.preco)
             elif c.preco is not None:
                 return (1, c.preco)
             else:
                 return (2, float("inf"))
-
         return sorted(cotacoes, key=chave)
 
     def _marcar_melhor_preco(self, cotacoes: list[Cotacao]):
-        """Marca a(s) cotação(ões) com menor preço disponível."""
-        precos_validos = [c.preco for c in cotacoes if c.preco is not None]
-        if not precos_validos:
+        precos = [c.preco for c in cotacoes if c.preco is not None]
+        if not precos:
             return
-        menor = min(precos_validos)
+        menor = min(precos)
         for c in cotacoes:
             c.melhor_preco = c.preco == menor

@@ -12,6 +12,8 @@ class StatusCotacao(str, Enum):
 
 class Cotacao(BaseModel):
     distribuidor: str
+    vendedor: Optional[str] = None           # "vendido e entregue por" (marketplace)
+    seller_id: Optional[str] = None          # ID do seller para filtros/blacklist
     preco: Optional[float] = None
     estoque: Optional[int] = None
     prazo_entrega: Optional[str] = None
@@ -19,7 +21,7 @@ class Cotacao(BaseModel):
     codigo_produto: Optional[str] = None
     status: StatusCotacao = StatusCotacao.SUCESSO
     erro_msg: Optional[str] = None
-    melhor_preco: bool = False  # marcado pelo manager
+    melhor_preco: bool = False
 
 
 class ResultadoCotacao(BaseModel):
@@ -33,7 +35,8 @@ class ResultadoCotacao(BaseModel):
 
 class SolicitacaoCotacao(BaseModel):
     referencia: str
-    distribuidores: Optional[list[str]] = None  # None = todos
+    distribuidores: Optional[list[str]] = None
+    ignorar_sellers: Optional[list[str]] = None
 
 
 class Distribuidor(BaseModel):
