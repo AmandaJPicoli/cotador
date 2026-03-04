@@ -19,6 +19,8 @@
     --muted: #5a5a72;
     --text: #e8e8f0;
     --text2: #9090a8;
+    --green: #1a2a10;
+    --green-border: #3a5a20;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,59 +41,82 @@
       linear-gradient(90deg, rgba(232,255,71,.03) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
+    z-index: 0;
   }
 
+  /* ── Header ── */
   header {
-    padding: 32px 40px 0;
+    padding: 28px 40px 0;
     display: flex;
     align-items: center;
     gap: 16px;
+    position: relative; z-index: 1;
   }
 
   .logo-mark {
-    width: 40px; height: 40px;
+    width: 36px; height: 36px;
     background: var(--accent);
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     display: flex; align-items: center; justify-content: center;
     font-family: 'Space Mono', monospace;
-    font-weight: 700; font-size: 14px;
-    color: #000;
-    flex-shrink: 0;
+    font-weight: 700; font-size: 12px;
+    color: #000; flex-shrink: 0;
   }
 
-  .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo-text { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
   .logo-text span { color: var(--accent); }
 
-  .tag {
+  /* ── Tab Nav ── */
+  .tab-nav {
     margin-left: auto;
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    padding: 4px 10px;
-    border-radius: 2px;
+    display: flex;
+    gap: 4px;
   }
 
-  /* ── Search ── */
+  .tab-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 7px 18px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .tab-btn:hover { color: var(--text); border-color: var(--text2); }
+  .tab-btn.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* ── Tab Panels ── */
+  .tab-panel { display: none; position: relative; z-index: 1; }
+  .tab-panel.active { display: block; }
+
+  /* ══════════════════════════════════════════
+     PAINEL: COTAÇÃO
+  ══════════════════════════════════════════ */
+
   .search-wrapper {
-    padding: 48px 40px 24px;
+    padding: 40px 40px 20px;
     max-width: 960px;
   }
 
   .search-label {
-    font-size: 13px;
+    font-size: 12px;
     font-family: 'Space Mono', monospace;
     color: var(--muted);
     letter-spacing: 2px;
     text-transform: uppercase;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
-  .search-row {
-    display: flex;
-    gap: 12px;
-    align-items: stretch;
-  }
+  .search-row { display: flex; gap: 12px; align-items: stretch; }
 
   .search-input {
     flex: 1;
@@ -99,402 +124,385 @@
     border: 1px solid var(--border);
     color: var(--text);
     font-family: 'Space Mono', monospace;
-    font-size: 18px;
-    font-weight: 700;
-    padding: 16px 24px;
+    font-size: 18px; font-weight: 700;
+    padding: 14px 22px;
     letter-spacing: 1px;
     outline: none;
     transition: border-color .2s;
   }
-
-  .search-input::placeholder { color: var(--muted); letter-spacing: 0; font-size: 14px; font-weight: 400; }
+  .search-input::placeholder { color: var(--muted); font-size: 13px; font-weight: 400; letter-spacing: 0; }
   .search-input:focus { border-color: var(--accent); }
 
-  .search-hint {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    margin-top: 10px;
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-
-  .search-hint span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .hint-badge {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 2px 8px;
-    border-radius: 2px;
-    color: var(--text2);
-    font-size: 10px;
-  }
-
-  .search-mode {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--accent2);
-    letter-spacing: 1px;
-    height: 16px;
-    transition: opacity .2s;
-  }
-
   .search-btn {
-    background: var(--accent);
-    color: #000;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 15px;
-    letter-spacing: 1px;
-    padding: 0 32px;
-    border: none;
-    cursor: pointer;
+    background: var(--accent); color: #000;
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 14px; letter-spacing: 1px;
+    padding: 0 28px; border: none; cursor: pointer;
     text-transform: uppercase;
     transition: opacity .15s, transform .1s;
     white-space: nowrap;
   }
-
   .search-btn:hover { opacity: .88; }
   .search-btn:active { transform: scale(.97); }
   .search-btn:disabled { opacity: .4; cursor: not-allowed; }
 
-  /* ── Blacklist bar ── */
+  .search-mode {
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    color: var(--accent2); letter-spacing: 1px; height: 16px;
+    margin-top: 8px; transition: opacity .2s;
+  }
+
+  .search-hint {
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    color: var(--muted); margin-top: 8px;
+    display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .hint-badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 2px 7px; border-radius: 2px; color: var(--text2); font-size: 10px;
+  }
+
+  /* Blacklist */
   .blacklist-bar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 0 40px 24px;
-    min-height: 0;
-    transition: all .2s;
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 8px; padding: 0 40px 20px;
   }
-
   .blacklist-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
-    white-space: nowrap;
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    letter-spacing: 2px; color: var(--muted); text-transform: uppercase; white-space: nowrap;
   }
-
   .bl-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #2a1010;
-    border: 1px solid #5a2020;
-    color: var(--danger);
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    padding: 3px 10px 3px 10px;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: background .15s;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #2a1010; border: 1px solid #5a2020; color: var(--danger);
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    padding: 3px 10px; border-radius: 2px; cursor: pointer; transition: background .15s;
   }
-
   .bl-chip:hover { background: #3a1515; }
-
-  .bl-chip .bl-x {
-    font-size: 14px;
-    line-height: 1;
-    color: #ff8080;
-    font-weight: 700;
-  }
-
+  .bl-chip .bl-x { font-size: 14px; line-height: 1; color: #ff8080; font-weight: 700; }
   .bl-clear {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    background: none;
-    border: 1px solid var(--border);
-    padding: 4px 10px;
-    cursor: pointer;
-    border-radius: 2px;
-    margin-left: 4px;
+    font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted);
+    background: none; border: 1px solid var(--border); padding: 4px 10px;
+    cursor: pointer; border-radius: 2px; margin-left: 4px;
   }
   .bl-clear:hover { color: var(--text); }
 
-  /* ── Stats bar ── */
+  /* Stats */
   .stats-bar {
-    display: flex;
-    gap: 32px;
-    padding: 0 40px 28px;
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
+    display: flex; gap: 28px; padding: 0 40px 24px;
+    font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted);
   }
+  .stat strong { color: var(--text); font-size: 17px; display: block; margin-bottom: 2px; }
 
-  .stat strong { color: var(--text); font-size: 18px; display: block; margin-bottom: 2px; }
-
-  /* ── Results ── */
+  /* Results */
   .results {
-    padding: 0 40px 60px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-width: 1200px;
+    padding: 0 40px 60px; display: flex; flex-direction: column;
+    gap: 8px; max-width: 1200px;
   }
-
   .results-header {
     display: grid;
     grid-template-columns: 32px 160px 1fr 140px 100px 120px 100px;
-    gap: 16px;
-    padding: 8px 20px;
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 4px;
+    gap: 16px; padding: 8px 20px;
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
+    border-bottom: 1px solid var(--border); margin-bottom: 4px;
   }
-
   .card {
     display: grid;
     grid-template-columns: 32px 160px 1fr 140px 100px 120px 100px;
-    gap: 16px;
-    align-items: center;
-    padding: 16px 20px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 3px solid transparent;
+    gap: 16px; align-items: center;
+    padding: 16px 20px; background: var(--surface);
+    border: 1px solid var(--border); border-left: 3px solid transparent;
     transition: border-color .2s, background .2s;
-    position: relative;
-    overflow: hidden;
+    position: relative; overflow: hidden;
+    animation: slideIn .25s ease both;
   }
-
   .card:hover { background: var(--surface2); }
-
-  .card.best {
-    border-left-color: var(--accent);
-    background: #151510;
-  }
-
+  .card.best { border-left-color: var(--accent); background: #151510; }
   .card.best::after {
     content: '★ MELHOR PREÇO';
-    position: absolute;
-    top: 8px; right: 12px;
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: var(--accent);
+    position: absolute; top: 8px; right: 12px;
+    font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 700;
+    letter-spacing: 2px; color: var(--accent);
   }
-
   .card.sem-estoque { opacity: .55; }
   .card.erro { border-left-color: var(--danger); }
   .card.ignorado { opacity: .3; pointer-events: none; }
 
-  .rank {
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-    text-align: center;
-  }
+  .rank { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); text-align: center; }
   .card.best .rank { color: var(--accent); font-weight: 700; }
 
-  /* ── Distribuidor column ── */
-  .dist-col {}
-
-  .distribuidor-nome {
-    font-weight: 600;
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .distribuidor-status {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    margin-top: 3px;
-  }
-
+  .distribuidor-nome { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .distribuidor-status { font-family: 'Space Mono', monospace; font-size: 10px; margin-top: 3px; }
   .status-ok    { color: var(--accent2); }
   .status-sem   { color: var(--warn); }
   .status-erro  { color: var(--danger); }
   .status-nao   { color: var(--muted); }
 
-  /* ── Vendedor column ── */
-  .vendedor-col {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    min-width: 0;
-  }
-
-  .vendedor-nome {
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
+  .vendedor-col { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .vendedor-nome { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .seller-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    letter-spacing: .5px;
-    color: var(--muted);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 2px 7px;
-    border-radius: 2px;
-    cursor: pointer;
-    width: fit-content;
-    transition: background .15s, color .15s, border-color .15s;
-    user-select: none;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .5px;
+    color: var(--muted); background: var(--surface2);
+    border: 1px solid var(--border); padding: 2px 7px; border-radius: 2px;
+    cursor: pointer; width: fit-content;
+    transition: background .15s, color .15s, border-color .15s; user-select: none;
   }
+  .seller-chip:hover { background: #2a1010; border-color: #5a2020; color: var(--danger); }
+  .vendedor-dash { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); }
 
-  .seller-chip:hover {
-    background: #2a1010;
-    border-color: #5a2020;
-    color: var(--danger);
-  }
-
-  .seller-chip .chip-icon { font-size: 11px; }
-
-  .vendedor-dash {
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  /* ── Preço ── */
-  .preco {
-    font-family: 'Space Mono', monospace;
-    font-weight: 700;
-    font-size: 20px;
-    color: var(--text);
-  }
+  .preco { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 20px; color: var(--text); }
   .card.best .preco { color: var(--accent); }
   .preco.none { color: var(--muted); font-size: 14px; }
 
-  .estoque {
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    color: var(--text2);
-  }
+  .estoque { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--text2); }
   .estoque.zero { color: var(--danger); }
   .estoque.ok   { color: var(--accent2); }
 
-  .prazo {
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    color: var(--text2);
-  }
+  .prazo { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text2); }
 
-  .economia {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    text-align: right;
-  }
+  .economia { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); text-align: right; }
   .economia.red { color: var(--danger); }
 
-  /* ── States ── */
   .empty-state, .loading-state, .error-state {
-    padding: 80px 40px;
-    text-align: center;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
+    padding: 80px 40px; text-align: center; color: var(--muted);
+    font-family: 'Space Mono', monospace; font-size: 13px;
   }
-
   .loading-state { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-
   .spinner {
-    width: 48px; height: 48px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
+    width: 44px; height: 44px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
-
   @keyframes spin { to { transform: rotate(360deg); } }
   .pulse-text { animation: pulse 1.5s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .card:nth-child(1)  { animation-delay: .00s } .card:nth-child(2)  { animation-delay: .04s }
+  .card:nth-child(3)  { animation-delay: .08s } .card:nth-child(4)  { animation-delay: .12s }
+  .card:nth-child(5)  { animation-delay: .16s } .card:nth-child(6)  { animation-delay: .20s }
+  .card:nth-child(7)  { animation-delay: .24s } .card:nth-child(8)  { animation-delay: .28s }
+  .card:nth-child(9)  { animation-delay: .32s } .card:nth-child(10) { animation-delay: .36s }
+  .card:nth-child(11) { animation-delay: .40s } .card:nth-child(12) { animation-delay: .44s }
 
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+  /* ══════════════════════════════════════════
+     PAINEL: CONFIGURAÇÕES
+  ══════════════════════════════════════════ */
+
+  .config-panel {
+    padding: 40px 40px 60px;
+    max-width: 960px;
   }
-  .card { animation: slideIn .25s ease both; }
-  .card:nth-child(1)  { animation-delay: .00s }
-  .card:nth-child(2)  { animation-delay: .04s }
-  .card:nth-child(3)  { animation-delay: .08s }
-  .card:nth-child(4)  { animation-delay: .12s }
-  .card:nth-child(5)  { animation-delay: .16s }
-  .card:nth-child(6)  { animation-delay: .20s }
-  .card:nth-child(7)  { animation-delay: .24s }
-  .card:nth-child(8)  { animation-delay: .28s }
-  .card:nth-child(9)  { animation-delay: .32s }
-  .card:nth-child(10) { animation-delay: .36s }
-  .card:nth-child(11) { animation-delay: .40s }
-  .card:nth-child(12) { animation-delay: .44s }
 
-  /* ── Config Banner ── */
-  .config-banner {
-    margin: 0 40px 24px;
+  .config-section {
+    margin-bottom: 40px;
+  }
+
+  .config-section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+
+  /* Conexão */
+  .config-field {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: 16px;
+  }
+  .config-field label {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--text2); letter-spacing: 1px;
+  }
+  .config-input {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Space Mono', monospace;
+    font-size: 13px; padding: 10px 14px; outline: none;
+    transition: border-color .2s; width: 100%; max-width: 480px;
+  }
+  .config-input:focus { border-color: var(--accent); }
+  .config-input.password { letter-spacing: 3px; }
+
+  .config-input-row {
+    display: flex; gap: 8px; align-items: center; max-width: 480px;
+  }
+  .config-input-row .config-input { flex: 1; max-width: none; }
+
+  .btn-eye {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); padding: 10px 12px; cursor: pointer;
+    font-size: 14px; transition: color .15s;
+    flex-shrink: 0;
+  }
+  .btn-eye:hover { color: var(--text); }
+
+  /* Distributor cards */
+  .dist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 12px;
+  }
+
+  .dist-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
     padding: 16px 20px;
-    background: #1a1400;
-    border: 1px solid #4a3a00;
-    border-left: 3px solid var(--warn);
-    font-family: 'Space Mono', monospace;
-    font-size: 12px;
-    color: #cc9900;
-    line-height: 1.6;
+    transition: border-color .2s;
   }
 
-  /* ── Demo Toggle ── */
-  .demo-toggle {
-    padding: 0 40px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .dist-card.ativo { border-left-color: var(--accent2); }
+  .dist-card.inativo { opacity: .5; }
+
+  .dist-card-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
   }
 
-  .demo-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
+  .dist-card-name {
+    font-weight: 700; font-size: 15px; flex: 1;
   }
 
-  .toggle { position: relative; width: 36px; height: 20px; cursor: pointer; }
+  .dist-type-badge {
+    font-family: 'Space Mono', monospace; font-size: 9px;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 2px;
+  }
+  .dist-type-badge.marketplace {
+    background: #0a1a2a; border: 1px solid #1a4a7a; color: #47aaff;
+  }
+  .dist-type-badge.b2b {
+    background: #1a0a2a; border: 1px solid #4a1a7a; color: #bb77ff;
+  }
+
+  .dist-card-status {
+    font-family: 'Space Mono', monospace; font-size: 9px;
+    letter-spacing: 1px; padding: 3px 8px; border-radius: 2px;
+  }
+  .dist-card-status.confirmado { background: var(--green); border: 1px solid var(--green-border); color: var(--accent2); }
+  .dist-card-status.pendente   { background: #1a1400; border: 1px solid #4a3a00; color: var(--warn); }
+
+  /* Toggle switch */
+  .toggle-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .toggle-label {
+    font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text2);
+  }
+  .toggle { position: relative; width: 36px; height: 20px; cursor: pointer; flex-shrink: 0; }
   .toggle input { display: none; }
-  .toggle-track {
-    position: absolute; inset: 0;
-    background: var(--border);
-    border-radius: 10px;
-    transition: background .2s;
-  }
+  .toggle-track { position: absolute; inset: 0; background: var(--border); border-radius: 10px; transition: background .2s; }
   .toggle-thumb {
-    position: absolute;
-    top: 3px; left: 3px;
-    width: 14px; height: 14px;
-    background: var(--muted);
-    border-radius: 50%;
+    position: absolute; top: 3px; left: 3px;
+    width: 14px; height: 14px; background: var(--muted); border-radius: 50%;
     transition: transform .2s, background .2s;
   }
-  .toggle input:checked ~ .toggle-track { background: #2a3a10; }
-  .toggle input:checked ~ .toggle-thumb { transform: translateX(16px); background: var(--accent); }
+  .toggle input:checked ~ .toggle-track { background: #1a3a10; }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(16px); background: var(--accent2); }
+
+  .dist-fields {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .dist-field-row {
+    display: grid; grid-template-columns: 80px 1fr; gap: 8px; align-items: center;
+  }
+
+  .dist-field-label {
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  .dist-input {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Space Mono', monospace;
+    font-size: 12px; padding: 7px 10px; outline: none;
+    transition: border-color .2s; width: 100%;
+  }
+  .dist-input:focus { border-color: var(--accent); }
+  .dist-input:disabled {
+    opacity: .3; cursor: not-allowed;
+  }
+  .dist-input.senha-field { letter-spacing: 2px; }
+
+  .dist-no-auth {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--accent2); padding: 6px 0;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .dist-extra-field {
+    display: flex; flex-direction: column; gap: 4px;
+    margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);
+  }
+  .dist-extra-label {
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  /* Action buttons */
+  .config-actions {
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    padding-top: 24px; border-top: 1px solid var(--border);
+  }
+
+  .btn-primary {
+    background: var(--accent); color: #000;
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
+    padding: 12px 28px; border: none; cursor: pointer;
+    transition: opacity .15s;
+  }
+  .btn-primary:hover { opacity: .85; }
+
+  .btn-secondary {
+    background: none; color: var(--text2);
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 11px 20px; border: 1px solid var(--border); cursor: pointer;
+    transition: color .15s, border-color .15s;
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--text2); }
+
+  .save-feedback {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--accent2); opacity: 0; transition: opacity .3s;
+  }
+  .save-feedback.show { opacity: 1; }
+
+  /* Blacklist na config */
+  .bl-config-empty {
+    font-family: 'Space Mono', monospace; font-size: 12px;
+    color: var(--muted); padding: 20px 0;
+  }
+  .bl-table {
+    width: 100%; border-collapse: collapse;
+  }
+  .bl-table th {
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
+    padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left;
+  }
+  .bl-table td {
+    font-family: 'Space Mono', monospace; font-size: 12px;
+    color: var(--text2); padding: 10px 12px;
+    border-bottom: 1px solid #1a1a25;
+  }
+  .bl-table tr:hover td { background: var(--surface2); }
+  .btn-remove {
+    background: none; border: 1px solid #5a2020; color: var(--danger);
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    padding: 3px 10px; cursor: pointer; transition: background .15s;
+  }
+  .btn-remove:hover { background: #2a1010; }
 
   @media (max-width: 768px) {
-    .search-wrapper, .stats-bar, .results, .demo-toggle, .config-banner, .blacklist-bar { padding-left: 20px; padding-right: 20px; }
     header { padding: 20px 20px 0; }
+    .search-wrapper, .config-panel, .stats-bar, .results, .blacklist-bar { padding-left: 20px; padding-right: 20px; }
+    .tab-btn span { display: none; }
     .results-header { display: none; }
     .card { grid-template-columns: 28px 1fr auto; }
-    .dist-col .distribuidor-nome { font-size: 13px; }
     .estoque, .prazo, .economia { display: none; }
+    .dist-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -503,78 +511,382 @@
 <header>
   <div class="logo-mark">B2B</div>
   <div class="logo-text">COTADOR <span>AUTOPEÇAS</span></div>
-  <div class="tag">v1.1 · MULTI-DISTRIBUIDOR</div>
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="setTab('cotacao')">🔍 <span>COTAÇÃO</span></button>
+    <button class="tab-btn" onclick="setTab('config')">⚙ <span>CONFIGURAÇÕES</span></button>
+  </nav>
 </header>
 
-<div class="search-wrapper">
-  <div class="search-label">// referência do produto</div>
-  <div class="search-row">
-    <input
-      class="search-input"
-      id="ref-input"
-      type="text"
-      placeholder="ex: 90915-YZZD2"
-      autocomplete="off"
-      spellcheck="false"
-      oninput="atualizarModo(this.value)"
-    />
-    <button class="search-btn" id="search-btn" onclick="buscar()">COTAR</button>
+<!-- ══════════ PAINEL COTAÇÃO ══════════ -->
+<div id="tab-cotacao" class="tab-panel active">
+
+  <div class="search-wrapper">
+    <div class="search-label">// referência ou descrição</div>
+    <div class="search-row">
+      <input class="search-input" id="ref-input" type="text"
+        placeholder="ex: 90915-YZZD2  ou  bucha jumello"
+        autocomplete="off" spellcheck="false"
+        oninput="atualizarModo(this.value)" />
+      <button class="search-btn" id="search-btn" onclick="buscar()">COTAR</button>
+    </div>
+    <div id="search-mode" class="search-mode" style="opacity:0">—</div>
+    <div class="search-hint">
+      <span><span class="hint-badge">90915-YZZD2</span> código</span>
+      <span><span class="hint-badge">filtro oleo</span> texto simples</span>
+      <span><span class="hint-badge">bucha jumello</span> contém todas</span>
+    </div>
   </div>
-  <div id="search-mode" class="search-mode" style="opacity:0">—</div>
-  <div class="search-hint">
-    <span><span class="hint-badge">90915-YZZD2</span> código da peça</span>
-    <span><span class="hint-badge">filtro oleo</span> texto simples</span>
-    <span><span class="hint-badge">bucha jumello</span> texto composto — contém todas</span>
+
+  <div class="blacklist-bar" id="blacklist-bar" style="display:none">
+    <span class="blacklist-label">🚫 ignorando:</span>
+    <div id="bl-chips"></div>
+    <button class="bl-clear" onclick="limparBlacklist()">LIMPAR TUDO</button>
   </div>
+
+  <div id="stats-bar" class="stats-bar" style="display:none">
+    <div class="stat"><strong id="stat-total">—</strong>CONSULTADOS</div>
+    <div class="stat"><strong id="stat-estoque">—</strong>COM ESTOQUE</div>
+    <div class="stat"><strong id="stat-tempo">—</strong>TEMPO</div>
+    <div class="stat"><strong id="stat-menor">—</strong>MENOR PREÇO</div>
+  </div>
+
+  <div id="output"></div>
 </div>
 
-<div class="demo-toggle">
-  <label class="toggle">
-    <input type="checkbox" id="demo-mode" checked onchange="toggleDemo()">
-    <div class="toggle-track"></div>
-    <div class="toggle-thumb"></div>
-  </label>
-  <span class="demo-label">MODO DEMONSTRAÇÃO (dados fictícios)</span>
-</div>
+<!-- ══════════ PAINEL CONFIGURAÇÕES ══════════ -->
+<div id="tab-config" class="tab-panel">
+<div class="config-panel">
 
-<div class="config-banner" id="config-banner">
-  ⚠ &nbsp;Configure a variável <strong>API_URL</strong> no topo do script apontando para seu backend FastAPI.<br>
-  Enquanto isso, o modo demonstração está ativo com dados simulados.
-</div>
+  <!-- Conexão -->
+  <div class="config-section">
+    <div class="config-section-title">// conexão com backend</div>
+    <div class="config-field">
+      <label>URL DA API</label>
+      <div class="config-input-row">
+        <input class="config-input" id="cfg-api-url" type="text"
+          placeholder="http://localhost:8000  ou  https://xxxx.railway.app" />
+      </div>
+      <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px">
+        Deixe vazio para usar o modo demonstração
+      </span>
+    </div>
+  </div>
 
-<!-- Blacklist de sellers -->
-<div class="blacklist-bar" id="blacklist-bar" style="display:none">
-  <span class="blacklist-label">🚫 ignorando:</span>
-  <div id="bl-chips"></div>
-  <button class="bl-clear" onclick="limparBlacklist()">LIMPAR TUDO</button>
-</div>
+  <!-- Distribuidores -->
+  <div class="config-section">
+    <div class="config-section-title">// distribuidores b2b</div>
+    <div class="dist-grid" id="dist-grid">
+      <!-- Preenchido por JS -->
+    </div>
+  </div>
 
-<div id="stats-bar" class="stats-bar" style="display:none">
-  <div class="stat"><strong id="stat-total">—</strong>CONSULTADOS</div>
-  <div class="stat"><strong id="stat-estoque">—</strong>COM ESTOQUE</div>
-  <div class="stat"><strong id="stat-tempo">—</strong>TEMPO</div>
-  <div class="stat"><strong id="stat-menor">—</strong>MENOR PREÇO</div>
-</div>
+  <!-- Blacklist -->
+  <div class="config-section">
+    <div class="config-section-title">// sellers ignorados (blacklist)</div>
+    <div id="bl-config-area"></div>
+  </div>
 
-<div id="output"></div>
+  <!-- Ações -->
+  <div class="config-actions">
+    <button class="btn-primary" onclick="salvarConfig()">💾 SALVAR CONFIGURAÇÕES</button>
+    <button class="btn-secondary" onclick="exportarEnv()">⬇ EXPORTAR .env</button>
+    <span class="save-feedback" id="save-feedback">✓ Salvo com sucesso</span>
+  </div>
+
+</div>
+</div>
 
 <script>
-// ─── CONFIGURAÇÃO ──────────────────────────────────────────────────────────
-const API_URL = "https://cotador-production.up.railway.app"; // ex: "https://seu-backend.railway.app"
-// ──────────────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+// DEFINIÇÃO DOS DISTRIBUIDORES
+// Adicione novos distribuidores aqui quando implementar os scrapers
+// ══════════════════════════════════════════════════════════
+const DISTRIBUIDORES_DEF = [
+  {
+    id: 'pitstop', nome: 'PitStop', tipo: 'marketplace',
+    status: 'confirmado', auth: false,
+    descricao: 'Marketplace VTEX — sem login necessário',
+    campos_extra: [
+      { id: 'max_sellers', label: 'MAX SELLERS', placeholder: '5', tipo: 'number' }
+    ]
+  },
+  { id: 'sama',       nome: 'SAMA',       tipo: 'b2b', status: 'confirmado', auth: true },
+  { id: 'pellegrino', nome: 'Pellegrino', tipo: 'b2b', status: 'confirmado', auth: true },
+  { id: 'roles',      nome: 'Roles',      tipo: 'b2b', status: 'confirmado', auth: true },
+  { id: 'dpk',        nome: 'DPK',        tipo: 'b2b', status: 'confirmado', auth: true },
+  { id: 'sk',         nome: 'SK Mobility',tipo: 'b2b', status: 'confirmado', auth: true },
+  { id: 'polipecas',  nome: 'Polipeças',  tipo: 'b2b', status: 'confirmado', auth: true },
+  { id: 'cobra',      nome: 'Cobra',      tipo: 'b2b', status: 'confirmado', auth: true },
+  { id: 'toli',       nome: 'Toli',       tipo: 'b2b', status: 'confirmado', auth: true },
+  { id: 'furacao',    nome: 'Furacão',    tipo: 'b2b', status: 'confirmado', auth: true },
+  { id: 'enviapecas', nome: 'EnviaPeças', tipo: 'b2b', status: 'confirmado', auth: true },
+  { id: 'infinity',   nome: 'Infinity',   tipo: 'b2b', status: 'pendente',   auth: true },
+  { id: 'menil',      nome: 'Menil',      tipo: 'b2b', status: 'pendente',   auth: true },
+  { id: 'vespor',     nome: 'Vespor',     tipo: 'b2b', status: 'pendente',   auth: true },
+];
 
-let demoMode = true;
+// ══════════════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ══════════════════════════════════════════════════════════
+let blacklist = {};   // { seller_id → vendedor_nome }
 
-// Blacklist de sellers: { seller_id → vendedor_nome }
-let blacklist = {};
-
-function toggleDemo() {
-  demoMode = document.getElementById('demo-mode').checked;
-  document.getElementById('config-banner').style.display = demoMode ? '' : 'none';
+// Carrega config do localStorage
+function carregarConfig() {
+  try {
+    const raw = localStorage.getItem('cotador_config');
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
 }
 
+function salvarConfigLocal(cfg) {
+  localStorage.setItem('cotador_config', JSON.stringify(cfg));
+}
+
+// ══════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════
+function setTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['cotacao','config'][i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'config') renderConfigPanel();
+}
+
+// ══════════════════════════════════════════════════════════
+// PAINEL CONFIGURAÇÕES — RENDER
+// ══════════════════════════════════════════════════════════
+function renderConfigPanel() {
+  const cfg = carregarConfig();
+
+  // API URL
+  document.getElementById('cfg-api-url').value = cfg.api_url || '';
+
+  // Distribuidores
+  const grid = document.getElementById('dist-grid');
+  grid.innerHTML = DISTRIBUIDORES_DEF.map(d => {
+    const ativo    = cfg[d.id]?.ativo !== false; // default true
+    const usuario  = cfg[d.id]?.usuario || '';
+    const senha    = cfg[d.id]?.senha || '';
+
+    const badgeTipo = d.tipo === 'marketplace'
+      ? '<span class="dist-type-badge marketplace">MARKETPLACE</span>'
+      : '<span class="dist-type-badge b2b">B2B LOGIN</span>';
+
+    const badgeStatus = d.status === 'confirmado'
+      ? '<span class="dist-card-status confirmado">● CONFIRMADO</span>'
+      : '<span class="dist-card-status pendente">◌ A VERIFICAR</span>';
+
+    let authHtml = '';
+    if (!d.auth) {
+      authHtml = `<div class="dist-no-auth">✓ Sem autenticação necessária</div>`;
+    } else {
+      authHtml = `
+        <div class="dist-fields">
+          <div class="dist-field-row">
+            <span class="dist-field-label">LOGIN</span>
+            <input class="dist-input" id="u_${d.id}" type="text"
+              placeholder="usuário / e-mail" value="${escHtml(usuario)}"
+              ${!ativo ? 'disabled' : ''} />
+          </div>
+          <div class="dist-field-row">
+            <span class="dist-field-label">SENHA</span>
+            <div style="display:flex;gap:4px;flex:1">
+              <input class="dist-input senha-field" id="p_${d.id}" type="password"
+                placeholder="••••••••" value="${escHtml(senha)}"
+                ${!ativo ? 'disabled' : ''} />
+              <button class="btn-eye" onclick="toggleSenha('p_${d.id}', this)" title="Mostrar/ocultar">👁</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // Campos extras (ex: max_sellers do PitStop)
+    let extraHtml = '';
+    if (d.campos_extra) {
+      extraHtml = d.campos_extra.map(c => {
+        const val = cfg[d.id]?.[c.id] || '';
+        return `
+          <div class="dist-extra-field">
+            <span class="dist-extra-label">${c.label}</span>
+            <input class="dist-input" id="x_${d.id}_${c.id}" type="${c.tipo || 'text'}"
+              placeholder="${c.placeholder}" value="${escHtml(val)}"
+              style="max-width:120px" ${!ativo ? 'disabled' : ''} />
+          </div>`;
+      }).join('');
+    }
+
+    return `
+      <div class="dist-card ${ativo ? 'ativo' : 'inativo'}" id="card_${d.id}">
+        <div class="dist-card-header">
+          <div class="dist-card-name">${escHtml(d.nome)}</div>
+          ${badgeTipo}
+          ${badgeStatus}
+        </div>
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="t_${d.id}" ${ativo ? 'checked' : ''}
+              onchange="toggleDistribuidor('${d.id}')">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+          <span class="toggle-label" id="tl_${d.id}">${ativo ? 'ATIVO' : 'INATIVO'}</span>
+        </div>
+        ${authHtml}
+        ${extraHtml}
+      </div>`;
+  }).join('');
+
+  // Blacklist
+  renderBlacklistConfig();
+}
+
+function toggleDistribuidor(id) {
+  const ativo = document.getElementById('t_' + id).checked;
+  const card  = document.getElementById('card_' + id);
+  const label = document.getElementById('tl_' + id);
+
+  card.className = `dist-card ${ativo ? 'ativo' : 'inativo'}`;
+  label.textContent = ativo ? 'ATIVO' : 'INATIVO';
+
+  // Habilita/desabilita inputs do card
+  card.querySelectorAll('input:not([type=checkbox]), button.btn-eye').forEach(el => {
+    if (el.type === 'checkbox') return;
+    el.disabled = !ativo;
+  });
+}
+
+function toggleSenha(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const visivel = input.type === 'text';
+  input.type = visivel ? 'password' : 'text';
+  input.classList.toggle('senha-field', visivel);
+  btn.textContent = visivel ? '👁' : '🙈';
+}
+
+function renderBlacklistConfig() {
+  const area = document.getElementById('bl-config-area');
+  const ids  = Object.keys(blacklist);
+  if (!ids.length) {
+    area.innerHTML = `<div class="bl-config-empty">Nenhum seller ignorado. Os sellers aparecem na aba Cotação ao clicar no chip de ID.</div>`;
+    return;
+  }
+  area.innerHTML = `
+    <table class="bl-table">
+      <thead><tr>
+        <th>SELLER ID</th><th>VENDEDOR</th><th></th>
+      </tr></thead>
+      <tbody>
+        ${ids.map(id => `
+          <tr>
+            <td>${escHtml(id)}</td>
+            <td>${escHtml(blacklist[id])}</td>
+            <td><button class="btn-remove" onclick="removerBlacklist('${escAttr(id)}')">× REMOVER</button></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// SALVAR CONFIGURAÇÕES
+// ══════════════════════════════════════════════════════════
+function salvarConfig() {
+  const cfg = carregarConfig();
+
+  // API URL
+  cfg.api_url = document.getElementById('cfg-api-url').value.trim().replace(/\/$/, '');
+
+  // Distribuidores
+  DISTRIBUIDORES_DEF.forEach(d => {
+    if (!cfg[d.id]) cfg[d.id] = {};
+    cfg[d.id].ativo = document.getElementById('t_' + d.id)?.checked ?? true;
+    if (d.auth) {
+      cfg[d.id].usuario = document.getElementById('u_' + d.id)?.value.trim() || '';
+      cfg[d.id].senha   = document.getElementById('p_' + d.id)?.value || '';
+    }
+    if (d.campos_extra) {
+      d.campos_extra.forEach(c => {
+        cfg[d.id][c.id] = document.getElementById(`x_${d.id}_${c.id}`)?.value.trim() || '';
+      });
+    }
+  });
+
+  salvarConfigLocal(cfg);
+
+  // Feedback visual
+  const fb = document.getElementById('save-feedback');
+  fb.classList.add('show');
+  setTimeout(() => fb.classList.remove('show'), 2500);
+}
+
+function exportarEnv() {
+  const cfg = carregarConfig();
+  let linhas = ['# Gerado pelo Cotador B2B', '# Cole este arquivo como .env na pasta backend/', ''];
+
+  DISTRIBUIDORES_DEF.forEach(d => {
+    if (!d.auth) return;
+    const u = cfg[d.id]?.usuario || '';
+    const p = cfg[d.id]?.senha   || '';
+    linhas.push(`# ${d.nome}`);
+    linhas.push(`${d.id.toUpperCase()}_USUARIO=${u}`);
+    linhas.push(`${d.id.toUpperCase()}_SENHA=${p}`);
+    linhas.push('');
+  });
+
+  const blob = new Blob([linhas.join('\n')], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = '.env'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════════
+// BLACKLIST
+// ══════════════════════════════════════════════════════════
+function adicionarBlacklist(sellerId, vendedorNome) {
+  if (!sellerId) return;
+  blacklist[sellerId] = vendedorNome || sellerId;
+  atualizarBlacklistBar();
+  buscar();
+}
+
+function removerBlacklist(sellerId) {
+  delete blacklist[sellerId];
+  atualizarBlacklistBar();
+  renderBlacklistConfig();
+  buscar();
+}
+
+function limparBlacklist() {
+  blacklist = {};
+  atualizarBlacklistBar();
+  renderBlacklistConfig();
+  buscar();
+}
+
+function atualizarBlacklistBar() {
+  const bar   = document.getElementById('blacklist-bar');
+  const chips = document.getElementById('bl-chips');
+  const ids   = Object.keys(blacklist);
+  if (!ids.length) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  chips.innerHTML = ids.map(id => `
+    <span class="bl-chip" onclick="removerBlacklist('${escAttr(id)}')">
+      <span class="bl-x">×</span>${escHtml(blacklist[id])}
+    </span>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// COTAÇÃO
+// ══════════════════════════════════════════════════════════
+document.getElementById('ref-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') buscar();
+});
+
 function atualizarModo(val) {
-  const v = val.trim();
+  const v  = val.trim();
   const el = document.getElementById('search-mode');
   if (!v) { el.style.opacity = '0'; return; }
   el.style.opacity = '1';
@@ -584,44 +896,39 @@ function atualizarModo(val) {
   } else if (palavras.length === 1) {
     el.textContent = '▸ TEXTO SIMPLES';
   } else {
-    el.textContent = `▸ TEXTO COMPOSTO — deve conter: ${palavras.map(p => '+p+').join(' + ')}`;
+    el.textContent = `▸ TEXTO COMPOSTO — deve conter: ${palavras.map(p => '"'+p+'"').join(' + ')}`;
   }
 }
 
-document.getElementById('ref-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') buscar();
-});
-
 async function buscar() {
-  const raw = document.getElementById('ref-input').value.trim();
-  // Mantém case original; código de peça (sem espaço) pode ser uppercase, texto livre não
-  const ref = raw;
+  const ref = document.getElementById('ref-input').value.trim();
   if (!ref) return;
 
   const btn = document.getElementById('search-btn');
-  btn.disabled = true;
-  btn.textContent = 'COTANDO...';
+  btn.disabled = true; btn.textContent = 'COTANDO...';
   document.getElementById('stats-bar').style.display = 'none';
   renderLoading(ref);
 
+  const cfg    = carregarConfig();
+  const apiUrl = cfg.api_url || '';
+  const demo   = !apiUrl;
+
   try {
-    const resultado = demoMode ? gerarDemoData(ref) : await chamarAPI(ref);
+    const resultado = demo ? gerarDemoData(ref) : await chamarAPI(apiUrl, ref);
     renderResultados(resultado);
   } catch(e) {
     renderErro(e.message);
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'COTAR';
+    btn.disabled = false; btn.textContent = 'COTAR';
   }
 }
 
-async function chamarAPI(ref) {
-  if (!API_URL) throw new Error("API_URL não configurada. Ative o modo demonstração ou configure o backend.");
+async function chamarAPI(apiUrl, ref) {
   const body = {
     referencia: ref,
     ignorar_sellers: Object.keys(blacklist).length ? Object.keys(blacklist) : undefined,
   };
-  const res = await fetch(`${API_URL}/cotar`, {
+  const res = await fetch(`${apiUrl}/cotar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -630,50 +937,11 @@ async function chamarAPI(ref) {
   return res.json();
 }
 
-// ─── Blacklist ──────────────────────────────────────────────────────────────
-function adicionarBlacklist(sellerId, vendedorNome) {
-  if (!sellerId) return;
-  blacklist[sellerId] = vendedorNome || sellerId;
-  atualizarBlacklistBar();
-  buscar(); // rebusca automaticamente sem o seller
-}
-
-function removerBlacklist(sellerId) {
-  delete blacklist[sellerId];
-  atualizarBlacklistBar();
-  buscar();
-}
-
-function limparBlacklist() {
-  blacklist = {};
-  atualizarBlacklistBar();
-  buscar();
-}
-
-function atualizarBlacklistBar() {
-  const bar   = document.getElementById('blacklist-bar');
-  const chips = document.getElementById('bl-chips');
-  const ids   = Object.keys(blacklist);
-
-  if (!ids.length) {
-    bar.style.display = 'none';
-    return;
-  }
-
-  bar.style.display = 'flex';
-  chips.innerHTML = ids.map(id => `
-    <span class="bl-chip" onclick="removerBlacklist('${id}')">
-      <span class="bl-x">×</span>${escHtml(blacklist[id])}
-    </span>
-  `).join('');
-}
-
-// ─── Render ─────────────────────────────────────────────────────────────────
 function renderLoading(ref) {
   document.getElementById('output').innerHTML = `
     <div class="loading-state">
       <div class="spinner"></div>
-      <div class="pulse-text">CONSULTANDO DISTRIBUIDORES PARA <strong style="color:var(--accent)">${ref}</strong></div>
+      <div class="pulse-text">CONSULTANDO PARA <strong style="color:var(--accent)">${escHtml(ref)}</strong></div>
     </div>`;
 }
 
@@ -685,8 +953,7 @@ function renderErro(msg) {
 function renderResultados(data) {
   const bar = document.getElementById('stats-bar');
   bar.style.display = 'flex';
-
-  const cotacoes = data.cotacoes || [];
+  const cotacoes  = data.cotacoes || [];
   const comPreco  = cotacoes.filter(c => c.preco != null);
   const menorPreco = comPreco.length ? Math.min(...comPreco.map(c => c.preco)) : null;
 
@@ -701,211 +968,154 @@ function renderResultados(data) {
     return;
   }
 
-  // Decide se mostra coluna vendedor
   const temVendedor = cotacoes.some(c => c.vendedor);
-
   const html = `
     <div class="results">
       <div class="results-header" style="${temVendedor ? '' : 'grid-template-columns: 32px 200px 140px 100px 120px 100px'}">
-        <div>#</div>
-        <div>DISTRIBUIDOR</div>
+        <div>#</div><div>DISTRIBUIDOR</div>
         ${temVendedor ? '<div>VENDIDO E ENTREGUE POR</div>' : ''}
-        <div>PREÇO</div>
-        <div>ESTOQUE</div>
-        <div>PRAZO</div>
+        <div>PREÇO</div><div>ESTOQUE</div><div>PRAZO</div>
         <div style="text-align:right">Δ MENOR</div>
       </div>
       ${cotacoes.map((c, i) => renderCard(c, i + 1, menorPreco, temVendedor)).join('')}
     </div>`;
-
   document.getElementById('output').innerHTML = html;
 }
 
 function renderCard(c, rank, menorPreco, temVendedor) {
-  const isBest     = c.melhor_preco;
-  const semEstoque = c.status === 'sem_estoque';
-  const isErro     = c.status === 'erro' || c.status === 'nao_encontrado';
-  const isIgnorado = c.seller_id && blacklist[c.seller_id];
-
+  const isBest = c.melhor_preco, semEstoque = c.status === 'sem_estoque';
+  const isErro = c.status === 'erro' || c.status === 'nao_encontrado';
   let cls = 'card';
-  if (isBest)     cls += ' best';
-  if (semEstoque) cls += ' sem-estoque';
-  if (isErro)     cls += ' erro';
-  if (isIgnorado) cls += ' ignorado';
-
+  if (isBest) cls += ' best'; if (semEstoque) cls += ' sem-estoque';
+  if (isErro) cls += ' erro';
   const gridStyle = temVendedor ? '' : `style="grid-template-columns: 32px 200px 140px 100px 120px 100px"`;
-
   const statusMap = {
-    sucesso:        ['status-ok',  '● DISPONÍVEL'],
-    sem_estoque:    ['status-sem', '○ SEM ESTOQUE'],
-    erro:           ['status-erro','✕ ERRO'],
-    nao_encontrado: ['status-nao', '— NÃO ENCONTRADO'],
+    sucesso: ['status-ok','● DISPONÍVEL'], sem_estoque: ['status-sem','○ SEM ESTOQUE'],
+    erro: ['status-erro','✕ ERRO'], nao_encontrado: ['status-nao','— NÃO ENCONTRADO'],
   };
-  const [statusCls, statusTxt] = statusMap[c.status] || ['status-nao', c.status];
+  const [sc, st] = statusMap[c.status] || ['status-nao', c.status];
 
-  // Coluna distribuidor
-  const distHtml = `
-    <div class="dist-col">
-      <div class="distribuidor-nome">${escHtml(c.distribuidor)}</div>
-      <div class="distribuidor-status ${statusCls}">${statusTxt}${c.erro_msg ? ': ' + escHtml(c.erro_msg) : ''}</div>
-    </div>`;
+  const distHtml = `<div class="dist-col">
+    <div class="distribuidor-nome">${escHtml(c.distribuidor)}</div>
+    <div class="distribuidor-status ${sc}">${st}${c.erro_msg ? ': '+escHtml(c.erro_msg) : ''}</div>
+  </div>`;
 
-  // Coluna vendedor (só se o marketplace tiver essa info)
   let vendedorHtml = '';
   if (temVendedor) {
     if (c.vendedor) {
       const sid = c.seller_id || '';
-      vendedorHtml = `
-        <div class="vendedor-col">
-          <div class="vendedor-nome">${escHtml(c.vendedor)}</div>
-          ${sid ? `<span class="seller-chip" onclick="adicionarBlacklist('${escAttr(sid)}', '${escAttr(c.vendedor)}')" title="Clique para ignorar este seller">
-            <span class="chip-icon">🚫</span>${escHtml(sid)}
-          </span>` : ''}
-        </div>`;
+      vendedorHtml = `<div class="vendedor-col">
+        <div class="vendedor-nome">${escHtml(c.vendedor)}</div>
+        ${sid ? `<span class="seller-chip" onclick="adicionarBlacklist('${escAttr(sid)}','${escAttr(c.vendedor)}')" title="Clique para ignorar">
+          <span>🚫</span>${escHtml(sid)}</span>` : ''}
+      </div>`;
     } else {
       vendedorHtml = `<div class="vendedor-dash">—</div>`;
     }
   }
 
-  const precoHtml = c.preco != null
-    ? `<div class="preco">R$ ${fmtPreco(c.preco)}</div>`
-    : `<div class="preco none">—</div>`;
-
-  const estoqueHtml = c.estoque != null
-    ? `<div class="estoque ${c.estoque > 0 ? 'ok' : 'zero'}">${c.estoque} un</div>`
-    : `<div class="estoque">—</div>`;
-
-  const prazoHtml = c.prazo_entrega
-    ? `<div class="prazo">${escHtml(c.prazo_entrega)}</div>`
-    : `<div class="prazo">—</div>`;
-
+  const precoHtml   = c.preco != null ? `<div class="preco">R$ ${fmtPreco(c.preco)}</div>` : `<div class="preco none">—</div>`;
+  const estoqueHtml = c.estoque != null ? `<div class="estoque ${c.estoque > 0 ? 'ok' : 'zero'}">${c.estoque} un</div>` : `<div class="estoque">—</div>`;
+  const prazoHtml   = c.prazo_entrega ? `<div class="prazo">${escHtml(c.prazo_entrega)}</div>` : `<div class="prazo">—</div>`;
   let deltaHtml = '<div class="economia">—</div>';
   if (c.preco != null && menorPreco != null) {
     const diff = c.preco - menorPreco;
-    deltaHtml = diff < 0.01
-      ? `<div class="economia" style="color:var(--accent)">BASE</div>`
-      : `<div class="economia red">+R$ ${fmtPreco(diff)}</div>`;
+    deltaHtml = diff < 0.01 ? `<div class="economia" style="color:var(--accent)">BASE</div>` : `<div class="economia red">+R$ ${fmtPreco(diff)}</div>`;
   }
 
-  return `
-    <div class="${cls}" ${gridStyle}>
-      <div class="rank">${rank}</div>
-      ${distHtml}
-      ${vendedorHtml}
-      ${precoHtml}
-      ${estoqueHtml}
-      ${prazoHtml}
-      ${deltaHtml}
-    </div>`;
+  return `<div class="${cls}" ${gridStyle}>
+    <div class="rank">${rank}</div>${distHtml}${vendedorHtml}${precoHtml}${estoqueHtml}${prazoHtml}${deltaHtml}
+  </div>`;
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-function fmtPreco(v) {
-  return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+function fmtPreco(v) { return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s) { if (!s) return ''; return String(s).replace(/'/g,"\\'"); }
+function normalizar(s) { return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
 
-function escHtml(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function escAttr(s) {
-  if (!s) return '';
-  return String(s).replace(/'/g, "\\'");
-}
-
-// ─── DEMO DATA ───────────────────────────────────────────────────────────────
-function normalizar(s) {
-  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-}
-
-function conteAllWords(produto, busca) {
-  const palavras = busca.trim().split(/\s+/).filter(Boolean);
-  const norm = normalizar(produto);
-  return palavras.every(p => norm.includes(normalizar(p)));
-}
-
+// ══════════════════════════════════════════════════════════
+// DEMO DATA
+// ══════════════════════════════════════════════════════════
 function gerarDemoData(ref) {
   const seed = ref.split('').reduce((a,c) => a + c.charCodeAt(0), 0) % 30;
-
-  // Catálogo demo com nomes de produto realistas
   const catalogo = [
-    { nome: "Bucha Jumello Suspensão Dianteira",       tags: ["bucha","jumello","suspensao","suspensão","dianteira"] },
-    { nome: "Filtro de Óleo Wega WL7110",              tags: ["filtro","oleo","óleo","wega","wl7110"] },
-    { nome: "Correia Dentada Gates",                   tags: ["correia","dentada","gates"] },
-    { nome: "Amortecedor Cofap Traseiro",              tags: ["amortecedor","cofap","traseiro"] },
-    { nome: "Pastilha de Freio Jurid",                 tags: ["pastilha","freio","jurid"] },
-    { nome: "Vela de Ignição NGK",                     tags: ["vela","ignicao","ignição","ngk"] },
-    { nome: "Kit Embreagem LUK",                       tags: ["kit","embreagem","luk"] },
-    { nome: "Rolamento Roda SKF",                      tags: ["rolamento","roda","skf"] },
+    { nome: "Bucha Jumello Suspensão Dianteira",  tags: ["bucha","jumello","suspensao","dianteira"] },
+    { nome: "Filtro de Óleo Wega WL7110",         tags: ["filtro","oleo","wega","wl7110"] },
+    { nome: "Correia Dentada Gates",              tags: ["correia","dentada","gates"] },
+    { nome: "Amortecedor Cofap Traseiro",         tags: ["amortecedor","cofap","traseiro"] },
+    { nome: "Pastilha de Freio Jurid",            tags: ["pastilha","freio","jurid"] },
+    { nome: "Vela de Ignição NGK",                tags: ["vela","ignicao","ngk"] },
+    { nome: "Kit Embreagem LUK",                  tags: ["kit","embreagem","luk"] },
+    { nome: "Rolamento Roda SKF",                 tags: ["rolamento","roda","skf"] },
   ];
-
-  // Seleciona produtos que contêm todas as palavras da busca
   const palavrasBusca = ref.trim().split(/\s+/).filter(Boolean);
-  const produtoMatch = catalogo.find(p =>
-    palavrasBusca.every(w => p.tags.some(t => normalizar(t).includes(normalizar(w))))
-  ) || { nome: ref.toUpperCase() };
+  const match = catalogo.find(p => palavrasBusca.every(w => p.tags.some(t => normalizar(t).includes(normalizar(w))))) || { nome: ref.toUpperCase() };
 
-  const distribuidores = [
-    // PitStop sellers (marketplace)
-    { dist: "PitStop", vendedor: "Distribuidora Comolatti",  seller_id: "comolatti",    base: 87.50, offset:  0,    estoque: 12, prazo: "1 dia útil",   produto: produtoMatch.nome },
-    { dist: "PitStop", vendedor: "Autopeças Silva Ltda",     seller_id: "silva-sp",     base: 87.50, offset:  6.40, estoque:  3, prazo: "2 dias úteis", produto: produtoMatch.nome },
-    { dist: "PitStop", vendedor: "Motor Forte Distribuidora",seller_id: "motorforte",   base: 87.50, offset: 14.00, estoque:  8, prazo: "3 dias úteis", produto: produtoMatch.nome },
-    // Distribuidores B2B diretos (sem vendedor separado)
-    { dist: "SAMA",      vendedor: null, seller_id: null, base: 87.50, offset: -3.00, estoque: 30, prazo: "1 dia útil",   produto: produtoMatch.nome },
-    { dist: "Pellegrino",vendedor: null, seller_id: null, base: 87.50, offset:  9.00, estoque:  0, prazo: "2 dias úteis", produto: produtoMatch.nome },
-    { dist: "Roles",     vendedor: null, seller_id: null, base: 87.50, offset: 18.00, estoque: 18, prazo: "2 dias úteis", produto: produtoMatch.nome },
-    { dist: "SK",        vendedor: null, seller_id: null, base: null,  offset:  0,    estoque: null, status: "nao_encontrado" },
-    { dist: "DPK",       vendedor: null, seller_id: null, base: null,  offset:  0,    estoque: null, status: "erro", erro_msg: "Timeout" },
-  ];
-
-  const cotacoes = distribuidores
-    .filter(d => !(d.seller_id && blacklist[d.seller_id])) // respeita blacklist no demo
-    .map(d => {
-      if (d.status === 'nao_encontrado') return {
-        distribuidor: d.dist, vendedor: d.vendedor, seller_id: d.seller_id,
-        preco: null, estoque: null, prazo_entrega: null,
-        status: 'nao_encontrado', melhor_preco: false,
-      };
-      if (d.status === 'erro') return {
-        distribuidor: d.dist, vendedor: d.vendedor, seller_id: d.seller_id,
-        preco: null, estoque: null, prazo_entrega: null,
-        status: 'erro', erro_msg: d.erro_msg, melhor_preco: false,
-      };
-
-      const preco  = +(d.base + d.offset + seed * 0.3).toFixed(2);
-      const status = d.estoque > 0 ? 'sucesso' : 'sem_estoque';
-      return {
-        distribuidor: d.dist,
-        vendedor:     d.vendedor,
-        seller_id:    d.seller_id,
-        preco, estoque: d.estoque, prazo_entrega: d.prazo,
-        status, melhor_preco: false,
-      };
-    });
-
-  // Ordena e marca melhor preço
-  cotacoes.sort((a, b) => {
-    const pa = a.preco != null && a.estoque > 0 ? a.preco : a.preco != null ? a.preco + 9999 : 99999;
-    const pb = b.preco != null && b.estoque > 0 ? b.preco : b.preco != null ? b.preco + 9999 : 99999;
-    return pa - pb;
+  const cfg = carregarConfig();
+  const dists = [
+    { dist:"PitStop", vendedor:"Distribuidora Comolatti", seller_id:"comolatti",  base:87.50, offset: 0,     estoque:12, prazo:"1 dia útil" },
+    { dist:"PitStop", vendedor:"Autopeças Silva Ltda",    seller_id:"silva-sp",   base:87.50, offset: 6.40,  estoque: 3, prazo:"2 dias úteis" },
+    { dist:"PitStop", vendedor:"Motor Forte",             seller_id:"motorforte", base:87.50, offset:14.00,  estoque: 8, prazo:"3 dias úteis" },
+    { dist:"SAMA",       vendedor:null, seller_id:null, base:87.50, offset:-3.00, estoque:30, prazo:"1 dia útil" },
+    { dist:"Pellegrino", vendedor:null, seller_id:null, base:87.50, offset: 9.00, estoque: 0, prazo:"2 dias úteis" },
+    { dist:"Roles",      vendedor:null, seller_id:null, base:87.50, offset:18.00, estoque:18, prazo:"2 dias úteis" },
+    { dist:"SK",         vendedor:null, seller_id:null, base:null,  offset:0,     estoque:null, status:"nao_encontrado" },
+    { dist:"DPK",        vendedor:null, seller_id:null, base:null,  offset:0,     estoque:null, status:"erro", erro_msg:"Timeout" },
+  ].filter(d => {
+    const defId = DISTRIBUIDORES_DEF.find(x => x.nome === d.dist || x.id === d.dist?.toLowerCase())?.id;
+    if (d.seller_id && blacklist[d.seller_id]) return false;
+    if (defId && cfg[defId]?.ativo === false) return false;
+    return true;
   });
 
-  const comPreco = cotacoes.filter(c => c.preco != null);
-  if (comPreco.length) {
-    const menor = Math.min(...comPreco.map(c => c.preco));
-    comPreco.forEach(c => c.melhor_preco = c.preco === menor);
-  }
+  const cotacoes = dists.map(d => {
+    if (d.status === 'nao_encontrado') return { distribuidor:d.dist, vendedor:d.vendedor, seller_id:d.seller_id, preco:null, estoque:null, prazo_entrega:null, status:'nao_encontrado', melhor_preco:false };
+    if (d.status === 'erro') return { distribuidor:d.dist, vendedor:d.vendedor, seller_id:d.seller_id, preco:null, estoque:null, prazo_entrega:null, status:'erro', erro_msg:d.erro_msg, melhor_preco:false };
+    const preco = +(d.base + d.offset + seed * 0.3).toFixed(2);
+    return { distribuidor:d.dist, vendedor:d.vendedor, seller_id:d.seller_id, codigo_produto:match.nome, preco, estoque:d.estoque, prazo_entrega:d.prazo, status:d.estoque > 0 ? 'sucesso' : 'sem_estoque', melhor_preco:false };
+  });
 
-  const comEstoque = cotacoes.filter(c => c.status === 'sucesso');
-  return {
-    referencia: ref,
-    cotacoes,
-    total_consultados: cotacoes.length,
-    total_com_estoque: comEstoque.length,
-    tempo_ms: 1240 + seed * 15,
-  };
+  cotacoes.sort((a,b) => {
+    const pa = a.preco != null && a.estoque > 0 ? a.preco : a.preco != null ? a.preco+9999 : 99999;
+    const pb = b.preco != null && b.estoque > 0 ? b.preco : b.preco != null ? b.preco+9999 : 99999;
+    return pa - pb;
+  });
+  const menor = Math.min(...cotacoes.filter(c => c.preco != null).map(c => c.preco));
+  cotacoes.filter(c => c.preco != null).forEach(c => c.melhor_preco = c.preco === menor);
+
+  return { referencia:ref, cotacoes, total_consultados:cotacoes.length, total_com_estoque:cotacoes.filter(c=>c.status==='sucesso').length, tempo_ms:1240+seed*15 };
 }
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+(function init() {
+  const cfg = carregarConfig();
+  // Mostra banner se sem API configurada
+  if (!cfg.api_url) {
+    document.getElementById('output').innerHTML = `
+      <div class="empty-state" style="color:var(--muted)">
+        ⚙ Configure a <strong style="color:var(--text)">URL da API</strong> em
+        <span style="color:var(--accent);cursor:pointer" onclick="setTab('config')">Configurações</span>
+        ou pesquise em modo demonstração
+      </div>`;
+  }
+  // Carrega blacklist salva
+  try {
+    const bl = JSON.parse(localStorage.getItem('cotador_blacklist') || '{}');
+    blacklist = bl;
+    atualizarBlacklistBar();
+  } catch {}
+})();
+
+// Salva blacklist ao modificar
+const _origAdicionarBl = adicionarBlacklist;
+function adicionarBlacklist(id, nome) { _origAdicionarBl(id, nome); localStorage.setItem('cotador_blacklist', JSON.stringify(blacklist)); }
+function removerBlacklist(id) { delete blacklist[id]; atualizarBlacklistBar(); renderBlacklistConfig(); localStorage.setItem('cotador_blacklist', JSON.stringify(blacklist)); buscar(); }
+function limparBlacklist() { blacklist = {}; atualizarBlacklistBar(); renderBlacklistConfig(); localStorage.setItem('cotador_blacklist', JSON.stringify(blacklist)); buscar(); }
 </script>
 </body>
 </html>
