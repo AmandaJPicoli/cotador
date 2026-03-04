@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotador B2B — Autopeças</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --border: #2a2a38;
+    --accent: #e8ff47;
+    --accent2: #47ffb8;
+    --danger: #ff4747;
+    --warn: #ffaa47;
+    --muted: #5a5a72;
+    --text: #e8e8f0;
+    --text2: #9090a8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,71,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,71,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  header {
+    padding: 32px 40px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 14px;
+    color: #000;
+    flex-shrink: 0;
+  }
+
+  .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo-text span { color: var(--accent); }
+
+  .tag {
+    margin-left: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+
+  /* ── Search ── */
+  .search-wrapper {
+    padding: 48px 40px 24px;
+    max-width: 960px;
+  }
+
+  .search-label {
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 16px 24px;
+    letter-spacing: 1px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .search-input::placeholder { color: var(--muted); letter-spacing: 0; font-size: 14px; font-weight: 400; }
+  .search-input:focus { border-color: var(--accent); }
+
+  .search-hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 10px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .search-hint span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .hint-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 2px;
+    color: var(--text2);
+    font-size: 10px;
+  }
+
+  .search-mode {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 1px;
+    height: 16px;
+    transition: opacity .2s;
+  }
+
+  .search-btn {
+    background: var(--accent);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 1px;
+    padding: 0 32px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: opacity .15s, transform .1s;
+    white-space: nowrap;
+  }
+
+  .search-btn:hover { opacity: .88; }
+  .search-btn:active { transform: scale(.97); }
+  .search-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Blacklist bar ── */
+  .blacklist-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 40px 24px;
+    min-height: 0;
+    transition: all .2s;
+  }
+
+  .blacklist-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .bl-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #2a1010;
+    border: 1px solid #5a2020;
+    color: var(--danger);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px 3px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  .bl-chip:hover { background: #3a1515; }
+
+  .bl-chip .bl-x {
+    font-size: 14px;
+    line-height: 1;
+    color: #ff8080;
+    font-weight: 700;
+  }
+
+  .bl-clear {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    cursor: pointer;
+    border-radius: 2px;
+    margin-left: 4px;
+  }
+  .bl-clear:hover { color: var(--text); }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: flex;
+    gap: 32px;
+    padding: 0 40px 28px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .stat strong { color: var(--text); font-size: 18px; display: block; margin-bottom: 2px; }
+
+  /* ── Results ── */
+  .results {
+    padding: 0 40px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 1200px;
+  }
+
+  .results-header {
+    display: grid;
+    grid-template-columns: 32px 160px 1fr 140px 100px 120px 100px;
+    gap: 16px;
+    padding: 8px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .card {
+    display: grid;
+    grid-template-columns: 32px 160px 1fr 140px 100px 120px 100px;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    transition: border-color .2s, background .2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card:hover { background: var(--surface2); }
+
+  .card.best {
+    border-left-color: var(--accent);
+    background: #151510;
+  }
+
+  .card.best::after {
+    content: '★ MELHOR PREÇO';
+    position: absolute;
+    top: 8px; right: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  .card.sem-estoque { opacity: .55; }
+  .card.erro { border-left-color: var(--danger); }
+  .card.ignorado { opacity: .3; pointer-events: none; }
+
+  .rank {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .card.best .rank { color: var(--accent); font-weight: 700; }
+
+  /* ── Distribuidor column ── */
+  .dist-col {}
+
+  .distribuidor-nome {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .distribuidor-status {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    margin-top: 3px;
+  }
+
+  .status-ok    { color: var(--accent2); }
+  .status-sem   { color: var(--warn); }
+  .status-erro  { color: var(--danger); }
+  .status-nao   { color: var(--muted); }
+
+  /* ── Vendedor column ── */
+  .vendedor-col {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .vendedor-nome {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .seller-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .5px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 2px;
+    cursor: pointer;
+    width: fit-content;
+    transition: background .15s, color .15s, border-color .15s;
+    user-select: none;
+  }
+
+  .seller-chip:hover {
+    background: #2a1010;
+    border-color: #5a2020;
+    color: var(--danger);
+  }
+
+  .seller-chip .chip-icon { font-size: 11px; }
+
+  .vendedor-dash {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── Preço ── */
+  .preco {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text);
+  }
+  .card.best .preco { color: var(--accent); }
+  .preco.none { color: var(--muted); font-size: 14px; }
+
+  .estoque {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .estoque.zero { color: var(--danger); }
+  .estoque.ok   { color: var(--accent2); }
+
+  .prazo {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .economia {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+  }
+  .economia.red { color: var(--danger); }
+
+  /* ── States ── */
+  .empty-state, .loading-state, .error-state {
+    padding: 80px 40px;
+    text-align: center;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  .loading-state { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+  .spinner {
+    width: 48px; height: 48px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .pulse-text { animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card { animation: slideIn .25s ease both; }
+  .card:nth-child(1)  { animation-delay: .00s }
+  .card:nth-child(2)  { animation-delay: .04s }
+  .card:nth-child(3)  { animation-delay: .08s }
+  .card:nth-child(4)  { animation-delay: .12s }
+  .card:nth-child(5)  { animation-delay: .16s }
+  .card:nth-child(6)  { animation-delay: .20s }
+  .card:nth-child(7)  { animation-delay: .24s }
+  .card:nth-child(8)  { animation-delay: .28s }
+  .card:nth-child(9)  { animation-delay: .32s }
+  .card:nth-child(10) { animation-delay: .36s }
+  .card:nth-child(11) { animation-delay: .40s }
+  .card:nth-child(12) { animation-delay: .44s }
+
+  /* ── Config Banner ── */
+  .config-banner {
+    margin: 0 40px 24px;
+    padding: 16px 20px;
+    background: #1a1400;
+    border: 1px solid #4a3a00;
+    border-left: 3px solid var(--warn);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: #cc9900;
+    line-height: 1.6;
+  }
+
+  /* ── Demo Toggle ── */
+  .demo-toggle {
+    padding: 0 40px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .demo-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .toggle { position: relative; width: 36px; height: 20px; cursor: pointer; }
+  .toggle input { display: none; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--border);
+    border-radius: 10px;
+    transition: background .2s;
+  }
+  .toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 14px; height: 14px;
+    background: var(--muted);
+    border-radius: 50%;
+    transition: transform .2s, background .2s;
+  }
+  .toggle input:checked ~ .toggle-track { background: #2a3a10; }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(16px); background: var(--accent); }
+
+  @media (max-width: 768px) {
+    .search-wrapper, .stats-bar, .results, .demo-toggle, .config-banner, .blacklist-bar { padding-left: 20px; padding-right: 20px; }
+    header { padding: 20px 20px 0; }
+    .results-header { display: none; }
+    .card { grid-template-columns: 28px 1fr auto; }
+    .dist-col .distribuidor-nome { font-size: 13px; }
+    .estoque, .prazo, .economia { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">B2B</div>
+  <div class="logo-text">COTADOR <span>AUTOPEÇAS</span></div>
+  <div class="tag">v1.1 · MULTI-DISTRIBUIDOR</div>
+</header>
+
+<div class="search-wrapper">
+  <div class="search-label">// referência do produto</div>
+  <div class="search-row">
+    <input
+      class="search-input"
+      id="ref-input"
+      type="text"
+      placeholder="ex: 90915-YZZD2"
+      autocomplete="off"
+      spellcheck="false"
+      oninput="atualizarModo(this.value)"
+    />
+    <button class="search-btn" id="search-btn" onclick="buscar()">COTAR</button>
+  </div>
+  <div id="search-mode" class="search-mode" style="opacity:0">—</div>
+  <div class="search-hint">
+    <span><span class="hint-badge">90915-YZZD2</span> código da peça</span>
+    <span><span class="hint-badge">filtro oleo</span> texto simples</span>
+    <span><span class="hint-badge">bucha jumello</span> texto composto — contém todas</span>
+  </div>
+</div>
+
+<div class="demo-toggle">
+  <label class="toggle">
+    <input type="checkbox" id="demo-mode" checked onchange="toggleDemo()">
+    <div class="toggle-track"></div>
+    <div class="toggle-thumb"></div>
+  </label>
+  <span class="demo-label">MODO DEMONSTRAÇÃO (dados fictícios)</span>
+</div>
+
+<div class="config-banner" id="config-banner">
+  ⚠ &nbsp;Configure a variável <strong>API_URL</strong> no topo do script apontando para seu backend FastAPI.<br>
+  Enquanto isso, o modo demonstração está ativo com dados simulados.
+</div>
+
+<!-- Blacklist de sellers -->
+<div class="blacklist-bar" id="blacklist-bar" style="display:none">
+  <span class="blacklist-label">🚫 ignorando:</span>
+  <div id="bl-chips"></div>
+  <button class="bl-clear" onclick="limparBlacklist()">LIMPAR TUDO</button>
+</div>
+
+<div id="stats-bar" class="stats-bar" style="display:none">
+  <div class="stat"><strong id="stat-total">—</strong>CONSULTADOS</div>
+  <div class="stat"><strong id="stat-estoque">—</strong>COM ESTOQUE</div>
+  <div class="stat"><strong id="stat-tempo">—</strong>TEMPO</div>
+  <div class="stat"><strong id="stat-menor">—</strong>MENOR PREÇO</div>
+</div>
+
+<div id="output"></div>
+
+<script>
+// ─── CONFIGURAÇÃO ──────────────────────────────────────────────────────────
+const API_URL = ""; // ex: "https://seu-backend.railway.app"
+// ──────────────────────────────────────────────────────────────────────────
+
+let demoMode = true;
+
+// Blacklist de sellers: { seller_id → vendedor_nome }
+let blacklist = {};
+
+function toggleDemo() {
+  demoMode = document.getElementById('demo-mode').checked;
+  document.getElementById('config-banner').style.display = demoMode ? '' : 'none';
+}
+
+function atualizarModo(val) {
+  const v = val.trim();
+  const el = document.getElementById('search-mode');
+  if (!v) { el.style.opacity = '0'; return; }
+  el.style.opacity = '1';
+  const palavras = v.split(/\s+/).filter(Boolean);
+  if (palavras.length === 1 && /^[A-Z0-9\-\.]+$/i.test(v)) {
+    el.textContent = '▸ CÓDIGO DE PEÇA';
+  } else if (palavras.length === 1) {
+    el.textContent = '▸ TEXTO SIMPLES';
+  } else {
+    el.textContent = `▸ TEXTO COMPOSTO — deve conter: ${palavras.map(p => '+p+').join(' + ')}`;
+  }
+}
+
+document.getElementById('ref-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') buscar();
+});
+
+async function buscar() {
+  const raw = document.getElementById('ref-input').value.trim();
+  // Mantém case original; código de peça (sem espaço) pode ser uppercase, texto livre não
+  const ref = raw;
+  if (!ref) return;
+
+  const btn = document.getElementById('search-btn');
+  btn.disabled = true;
+  btn.textContent = 'COTANDO...';
+  document.getElementById('stats-bar').style.display = 'none';
+  renderLoading(ref);
+
+  try {
+    const resultado = demoMode ? gerarDemoData(ref) : await chamarAPI(ref);
+    renderResultados(resultado);
+  } catch(e) {
+    renderErro(e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'COTAR';
+  }
+}
+
+async function chamarAPI(ref) {
+  if (!API_URL) throw new Error("API_URL não configurada. Ative o modo demonstração ou configure o backend.");
+  const body = {
+    referencia: ref,
+    ignorar_sellers: Object.keys(blacklist).length ? Object.keys(blacklist) : undefined,
+  };
+  const res = await fetch(`${API_URL}/cotar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`Erro HTTP ${res.status}`);
+  return res.json();
+}
+
+// ─── Blacklist ──────────────────────────────────────────────────────────────
+function adicionarBlacklist(sellerId, vendedorNome) {
+  if (!sellerId) return;
+  blacklist[sellerId] = vendedorNome || sellerId;
+  atualizarBlacklistBar();
+  buscar(); // rebusca automaticamente sem o seller
+}
+
+function removerBlacklist(sellerId) {
+  delete blacklist[sellerId];
+  atualizarBlacklistBar();
+  buscar();
+}
+
+function limparBlacklist() {
+  blacklist = {};
+  atualizarBlacklistBar();
+  buscar();
+}
+
+function atualizarBlacklistBar() {
+  const bar   = document.getElementById('blacklist-bar');
+  const chips = document.getElementById('bl-chips');
+  const ids   = Object.keys(blacklist);
+
+  if (!ids.length) {
+    bar.style.display = 'none';
+    return;
+  }
+
+  bar.style.display = 'flex';
+  chips.innerHTML = ids.map(id => `
+    <span class="bl-chip" onclick="removerBlacklist('${id}')">
+      <span class="bl-x">×</span>${escHtml(blacklist[id])}
+    </span>
+  `).join('');
+}
+
+// ─── Render ─────────────────────────────────────────────────────────────────
+function renderLoading(ref) {
+  document.getElementById('output').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <div class="pulse-text">CONSULTANDO DISTRIBUIDORES PARA <strong style="color:var(--accent)">${ref}</strong></div>
+    </div>`;
+}
+
+function renderErro(msg) {
+  document.getElementById('output').innerHTML = `
+    <div class="error-state" style="color:var(--danger)">✕ ERRO: ${escHtml(msg)}</div>`;
+}
+
+function renderResultados(data) {
+  const bar = document.getElementById('stats-bar');
+  bar.style.display = 'flex';
+
+  const cotacoes = data.cotacoes || [];
+  const comPreco  = cotacoes.filter(c => c.preco != null);
+  const menorPreco = comPreco.length ? Math.min(...comPreco.map(c => c.preco)) : null;
+
+  document.getElementById('stat-total').textContent   = data.total_consultados;
+  document.getElementById('stat-estoque').textContent = data.total_com_estoque;
+  document.getElementById('stat-tempo').textContent   = data.tempo_ms ? `${data.tempo_ms}ms` : '—';
+  document.getElementById('stat-menor').textContent   = menorPreco ? `R$ ${fmtPreco(menorPreco)}` : '—';
+
+  if (!cotacoes.length) {
+    document.getElementById('output').innerHTML = `
+      <div class="empty-state">Nenhum resultado para <strong>${escHtml(data.referencia)}</strong></div>`;
+    return;
+  }
+
+  // Decide se mostra coluna vendedor
+  const temVendedor = cotacoes.some(c => c.vendedor);
+
+  const html = `
+    <div class="results">
+      <div class="results-header" style="${temVendedor ? '' : 'grid-template-columns: 32px 200px 140px 100px 120px 100px'}">
+        <div>#</div>
+        <div>DISTRIBUIDOR</div>
+        ${temVendedor ? '<div>VENDIDO E ENTREGUE POR</div>' : ''}
+        <div>PREÇO</div>
+        <div>ESTOQUE</div>
+        <div>PRAZO</div>
+        <div style="text-align:right">Δ MENOR</div>
+      </div>
+      ${cotacoes.map((c, i) => renderCard(c, i + 1, menorPreco, temVendedor)).join('')}
+    </div>`;
+
+  document.getElementById('output').innerHTML = html;
+}
+
+function renderCard(c, rank, menorPreco, temVendedor) {
+  const isBest     = c.melhor_preco;
+  const semEstoque = c.status === 'sem_estoque';
+  const isErro     = c.status === 'erro' || c.status === 'nao_encontrado';
+  const isIgnorado = c.seller_id && blacklist[c.seller_id];
+
+  let cls = 'card';
+  if (isBest)     cls += ' best';
+  if (semEstoque) cls += ' sem-estoque';
+  if (isErro)     cls += ' erro';
+  if (isIgnorado) cls += ' ignorado';
+
+  const gridStyle = temVendedor ? '' : `style="grid-template-columns: 32px 200px 140px 100px 120px 100px"`;
+
+  const statusMap = {
+    sucesso:        ['status-ok',  '● DISPONÍVEL'],
+    sem_estoque:    ['status-sem', '○ SEM ESTOQUE'],
+    erro:           ['status-erro','✕ ERRO'],
+    nao_encontrado: ['status-nao', '— NÃO ENCONTRADO'],
+  };
+  const [statusCls, statusTxt] = statusMap[c.status] || ['status-nao', c.status];
+
+  // Coluna distribuidor
+  const distHtml = `
+    <div class="dist-col">
+      <div class="distribuidor-nome">${escHtml(c.distribuidor)}</div>
+      <div class="distribuidor-status ${statusCls}">${statusTxt}${c.erro_msg ? ': ' + escHtml(c.erro_msg) : ''}</div>
+    </div>`;
+
+  // Coluna vendedor (só se o marketplace tiver essa info)
+  let vendedorHtml = '';
+  if (temVendedor) {
+    if (c.vendedor) {
+      const sid = c.seller_id || '';
+      vendedorHtml = `
+        <div class="vendedor-col">
+          <div class="vendedor-nome">${escHtml(c.vendedor)}</div>
+          ${sid ? `<span class="seller-chip" onclick="adicionarBlacklist('${escAttr(sid)}', '${escAttr(c.vendedor)}')" title="Clique para ignorar este seller">
+            <span class="chip-icon">🚫</span>${escHtml(sid)}
+          </span>` : ''}
+        </div>`;
+    } else {
+      vendedorHtml = `<div class="vendedor-dash">—</div>`;
+    }
+  }
+
+  const precoHtml = c.preco != null
+    ? `<div class="preco">R$ ${fmtPreco(c.preco)}</div>`
+    : `<div class="preco none">—</div>`;
+
+  const estoqueHtml = c.estoque != null
+    ? `<div class="estoque ${c.estoque > 0 ? 'ok' : 'zero'}">${c.estoque} un</div>`
+    : `<div class="estoque">—</div>`;
+
+  const prazoHtml = c.prazo_entrega
+    ? `<div class="prazo">${escHtml(c.prazo_entrega)}</div>`
+    : `<div class="prazo">—</div>`;
+
+  let deltaHtml = '<div class="economia">—</div>';
+  if (c.preco != null && menorPreco != null) {
+    const diff = c.preco - menorPreco;
+    deltaHtml = diff < 0.01
+      ? `<div class="economia" style="color:var(--accent)">BASE</div>`
+      : `<div class="economia red">+R$ ${fmtPreco(diff)}</div>`;
+  }
+
+  return `
+    <div class="${cls}" ${gridStyle}>
+      <div class="rank">${rank}</div>
+      ${distHtml}
+      ${vendedorHtml}
+      ${precoHtml}
+      ${estoqueHtml}
+      ${prazoHtml}
+      ${deltaHtml}
+    </div>`;
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+function fmtPreco(v) {
+  return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escAttr(s) {
+  if (!s) return '';
+  return String(s).replace(/'/g, "\\'");
+}
+
+// ─── DEMO DATA ───────────────────────────────────────────────────────────────
+function normalizar(s) {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+function conteAllWords(produto, busca) {
+  const palavras = busca.trim().split(/\s+/).filter(Boolean);
+  const norm = normalizar(produto);
+  return palavras.every(p => norm.includes(normalizar(p)));
+}
+
+function gerarDemoData(ref) {
+  const seed = ref.split('').reduce((a,c) => a + c.charCodeAt(0), 0) % 30;
+
+  // Catálogo demo com nomes de produto realistas
+  const catalogo = [
+    { nome: "Bucha Jumello Suspensão Dianteira",       tags: ["bucha","jumello","suspensao","suspensão","dianteira"] },
+    { nome: "Filtro de Óleo Wega WL7110",              tags: ["filtro","oleo","óleo","wega","wl7110"] },
+    { nome: "Correia Dentada Gates",                   tags: ["correia","dentada","gates"] },
+    { nome: "Amortecedor Cofap Traseiro",              tags: ["amortecedor","cofap","traseiro"] },
+    { nome: "Pastilha de Freio Jurid",                 tags: ["pastilha","freio","jurid"] },
+    { nome: "Vela de Ignição NGK",                     tags: ["vela","ignicao","ignição","ngk"] },
+    { nome: "Kit Embreagem LUK",                       tags: ["kit","embreagem","luk"] },
+    { nome: "Rolamento Roda SKF",                      tags: ["rolamento","roda","skf"] },
+  ];
+
+  // Seleciona produtos que contêm todas as palavras da busca
+  const palavrasBusca = ref.trim().split(/\s+/).filter(Boolean);
+  const produtoMatch = catalogo.find(p =>
+    palavrasBusca.every(w => p.tags.some(t => normalizar(t).includes(normalizar(w))))
+  ) || { nome: ref.toUpperCase() };
+
+  const distribuidores = [
+    // PitStop sellers (marketplace)
+    { dist: "PitStop", vendedor: "Distribuidora Comolatti",  seller_id: "comolatti",    base: 87.50, offset:  0,    estoque: 12, prazo: "1 dia útil",   produto: produtoMatch.nome },
+    { dist: "PitStop", vendedor: "Autopeças Silva Ltda",     seller_id: "silva-sp",     base: 87.50, offset:  6.40, estoque:  3, prazo: "2 dias úteis", produto: produtoMatch.nome },
+    { dist: "PitStop", vendedor: "Motor Forte Distribuidora",seller_id: "motorforte",   base: 87.50, offset: 14.00, estoque:  8, prazo: "3 dias úteis", produto: produtoMatch.nome },
+    // Distribuidores B2B diretos (sem vendedor separado)
+    { dist: "SAMA",      vendedor: null, seller_id: null, base: 87.50, offset: -3.00, estoque: 30, prazo: "1 dia útil",   produto: produtoMatch.nome },
+    { dist: "Pellegrino",vendedor: null, seller_id: null, base: 87.50, offset:  9.00, estoque:  0, prazo: "2 dias úteis", produto: produtoMatch.nome },
+    { dist: "Roles",     vendedor: null, seller_id: null, base: 87.50, offset: 18.00, estoque: 18, prazo: "2 dias úteis", produto: produtoMatch.nome },
+    { dist: "SK",        vendedor: null, seller_id: null, base: null,  offset:  0,    estoque: null, status: "nao_encontrado" },
+    { dist: "DPK",       vendedor: null, seller_id: null, base: null,  offset:  0,    estoque: null, status: "erro", erro_msg: "Timeout" },
+  ];
+
+  const cotacoes = distribuidores
+    .filter(d => !(d.seller_id && blacklist[d.seller_id])) // respeita blacklist no demo
+    .map(d => {
+      if (d.status === 'nao_encontrado') return {
+        distribuidor: d.dist, vendedor: d.vendedor, seller_id: d.seller_id,
+        preco: null, estoque: null, prazo_entrega: null,
+        status: 'nao_encontrado', melhor_preco: false,
+      };
+      if (d.status === 'erro') return {
+        distribuidor: d.dist, vendedor: d.vendedor, seller_id: d.seller_id,
+        preco: null, estoque: null, prazo_entrega: null,
+        status: 'erro', erro_msg: d.erro_msg, melhor_preco: false,
+      };
+
+      const preco  = +(d.base + d.offset + seed * 0.3).toFixed(2);
+      const status = d.estoque > 0 ? 'sucesso' : 'sem_estoque';
+      return {
+        distribuidor: d.dist,
+        vendedor:     d.vendedor,
+        seller_id:    d.seller_id,
+        preco, estoque: d.estoque, prazo_entrega: d.prazo,
+        status, melhor_preco: false,
+      };
+    });
+
+  // Ordena e marca melhor preço
+  cotacoes.sort((a, b) => {
+    const pa = a.preco != null && a.estoque > 0 ? a.preco : a.preco != null ? a.preco + 9999 : 99999;
+    const pb = b.preco != null && b.estoque > 0 ? b.preco : b.preco != null ? b.preco + 9999 : 99999;
+    return pa - pb;
+  });
+
+  const comPreco = cotacoes.filter(c => c.preco != null);
+  if (comPreco.length) {
+    const menor = Math.min(...comPreco.map(c => c.preco));
+    comPreco.forEach(c => c.melhor_preco = c.preco === menor);
+  }
+
+  const comEstoque = cotacoes.filter(c => c.status === 'sucesso');
+  return {
+    referencia: ref,
+    cotacoes,
+    total_consultados: cotacoes.length,
+    total_com_estoque: comEstoque.length,
+    tempo_ms: 1240 + seed * 15,
+  };
+}
+</script>
+</body>
+</html>
