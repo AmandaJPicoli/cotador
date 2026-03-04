@@ -10,17 +10,18 @@ Consulta 4–10 portais simultaneamente com Playwright e retorna resultados orde
 ```
 cotador-autopecas/
 ├── backend/
-│   ├── main.py                        ← FastAPI (endpoints)
-│   ├── models.py                      ← Pydantic models
+│   ├── main.py
+│   ├── models.py
 │   ├── requirements.txt
-│   ├── railway.toml                   ← Config deploy Railway
-│   ├── .env.example                   ← Modelo de credenciais
+│   ├── railway.toml
+│   ├── .env.example 
 │   └── scrapers/
-│       ├── base_scraper.py            ← Classe base (herde desta)
-│       ├── manager.py                 ← Orquestrador paralelo
-│       └── distribuidor_template.py  ← Template comentado
+│       ├── pitstop.py       
+│       ├── base_scraper.py
+│       ├── manager.py
+│       └── distribuidor_template.py
 └── frontend/
-    └── index.html                     ← Interface de cotação
+    └── index.html    
 ```
 
 ---
