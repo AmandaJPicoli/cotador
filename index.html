@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotador B2B — Autopeças</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --border: #2a2a38;
+    --accent: #e8ff47;
+    --accent2: #47ffb8;
+    --danger: #ff4747;
+    --warn: #ffaa47;
+    --muted: #5a5a72;
+    --text: #e8e8f0;
+    --text2: #9090a8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid BG ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(232,255,71,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,255,71,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  header {
+    padding: 32px 40px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 14px;
+    color: #000;
+    flex-shrink: 0;
+  }
+
+  .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo-text span { color: var(--accent); }
+
+  .tag {
+    margin-left: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+
+  /* ── Search Area ── */
+  .search-wrapper {
+    padding: 48px 40px 32px;
+    max-width: 900px;
+  }
+
+  .search-label {
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    padding: 16px 24px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .search-input::placeholder { color: var(--muted); letter-spacing: 2px; font-size: 16px; }
+  .search-input:focus { border-color: var(--accent); }
+
+  .search-btn {
+    background: var(--accent);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 1px;
+    padding: 0 32px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: opacity .15s, transform .1s;
+    white-space: nowrap;
+  }
+
+  .search-btn:hover { opacity: .88; }
+  .search-btn:active { transform: scale(.97); }
+  .search-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: flex;
+    gap: 32px;
+    padding: 0 40px 28px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .stat strong { color: var(--text); font-size: 18px; display: block; margin-bottom: 2px; }
+
+  /* ── Results ── */
+  .results {
+    padding: 0 40px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 1100px;
+  }
+
+  .results-header {
+    display: grid;
+    grid-template-columns: 32px 1fr 140px 100px 160px 140px;
+    gap: 16px;
+    padding: 8px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .card {
+    display: grid;
+    grid-template-columns: 32px 1fr 140px 100px 160px 140px;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    transition: border-color .2s, background .2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card:hover { background: var(--surface2); }
+
+  .card.best {
+    border-left-color: var(--accent);
+    background: #151510;
+  }
+
+  .card.best::after {
+    content: '★ MELHOR PREÇO';
+    position: absolute;
+    top: 8px; right: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  .card.sem-estoque { opacity: .55; }
+  .card.erro { border-left-color: var(--danger); }
+
+  .rank {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .card.best .rank { color: var(--accent); font-weight: 700; }
+
+  .distribuidor-nome {
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .distribuidor-status {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    margin-top: 3px;
+  }
+
+  .status-ok    { color: var(--accent2); }
+  .status-sem   { color: var(--warn); }
+  .status-erro  { color: var(--danger); }
+  .status-nao   { color: var(--muted); }
+
+  .preco {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  .card.best .preco { color: var(--accent); }
+  .preco.none { color: var(--muted); font-size: 14px; }
+
+  .estoque {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .estoque.zero { color: var(--danger); }
+  .estoque.ok   { color: var(--accent2); }
+
+  .prazo {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .economia {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .economia.red { color: var(--danger); }
+
+  /* ── States ── */
+  .empty-state, .loading-state, .error-state {
+    padding: 80px 40px;
+    text-align: center;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  .loading-state { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+  .spinner {
+    width: 48px; height: 48px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .pulse-text { animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── Appear animation ── */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card { animation: slideIn .25s ease both; }
+  .card:nth-child(1)  { animation-delay: .00s }
+  .card:nth-child(2)  { animation-delay: .04s }
+  .card:nth-child(3)  { animation-delay: .08s }
+  .card:nth-child(4)  { animation-delay: .12s }
+  .card:nth-child(5)  { animation-delay: .16s }
+  .card:nth-child(6)  { animation-delay: .20s }
+  .card:nth-child(7)  { animation-delay: .24s }
+  .card:nth-child(8)  { animation-delay: .28s }
+  .card:nth-child(9)  { animation-delay: .32s }
+  .card:nth-child(10) { animation-delay: .36s }
+
+  /* ── Config Banner ── */
+  .config-banner {
+    margin: 0 40px 32px;
+    padding: 16px 20px;
+    background: #1a1400;
+    border: 1px solid #4a3a00;
+    border-left: 3px solid var(--warn);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: #cc9900;
+    line-height: 1.6;
+  }
+
+  .config-banner a { color: var(--warn); }
+
+  /* ── Demo Mode Toggle ── */
+  .demo-toggle {
+    padding: 0 40px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .demo-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .toggle {
+    position: relative;
+    width: 36px; height: 20px;
+    cursor: pointer;
+  }
+
+  .toggle input { display: none; }
+
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--border);
+    border-radius: 10px;
+    transition: background .2s;
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 14px; height: 14px;
+    background: var(--muted);
+    border-radius: 50%;
+    transition: transform .2s, background .2s;
+  }
+
+  .toggle input:checked ~ .toggle-track { background: #2a3a10; }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(16px); background: var(--accent); }
+
+  @media (max-width: 768px) {
+    .search-wrapper, .stats-bar, .results, .demo-toggle, .config-banner { padding-left: 20px; padding-right: 20px; }
+    header { padding: 20px 20px 0; }
+    .results-header { display: none; }
+    .card { grid-template-columns: 28px 1fr auto; grid-template-rows: auto auto; }
+    .estoque, .prazo, .economia { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">B2B</div>
+  <div class="logo-text">COTADOR <span>AUTOPEÇAS</span></div>
+  <div class="tag">v1.0 · MULTI-DISTRIBUIDOR</div>
+</header>
+
+<div class="search-wrapper">
+  <div class="search-label">// referência do produto</div>
+  <div class="search-row">
+    <input
+      class="search-input"
+      id="ref-input"
+      type="text"
+      placeholder="ex: 90915-YZZD2"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <button class="search-btn" id="search-btn" onclick="buscar()">COTAR</button>
+  </div>
+</div>
+
+<div class="demo-toggle">
+  <label class="toggle">
+    <input type="checkbox" id="demo-mode" checked onchange="toggleDemo()">
+    <div class="toggle-track"></div>
+    <div class="toggle-thumb"></div>
+  </label>
+  <span class="demo-label">MODO DEMONSTRAÇÃO (dados fictícios)</span>
+</div>
+
+<div class="config-banner" id="config-banner">
+  ⚠ &nbsp;Configure a variável <strong>API_URL</strong> no topo do script apontando para seu backend FastAPI.<br>
+  Enquanto isso, o modo demonstração está ativo com dados simulados.
+</div>
+
+<div id="stats-bar" class="stats-bar" style="display:none">
+  <div class="stat"><strong id="stat-total">—</strong>CONSULTADOS</div>
+  <div class="stat"><strong id="stat-estoque">—</strong>COM ESTOQUE</div>
+  <div class="stat"><strong id="stat-tempo">—</strong>TEMPO</div>
+  <div class="stat"><strong id="stat-menor">—</strong>MENOR PREÇO</div>
+</div>
+
+<div id="output"></div>
+
+<script>
+// ─── CONFIGURAÇÃO ──────────────────────────────────────────────────────────
+const API_URL = ""; // ex: "https://seu-backend.railway.app"
+// ──────────────────────────────────────────────────────────────────────────
+
+let demoMode = true;
+
+function toggleDemo() {
+  demoMode = document.getElementById('demo-mode').checked;
+  document.getElementById('config-banner').style.display = demoMode ? '' : 'none';
+}
+
+document.getElementById('ref-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') buscar();
+});
+
+async function buscar() {
+  const ref = document.getElementById('ref-input').value.trim().toUpperCase();
+  if (!ref) return;
+
+  const btn = document.getElementById('search-btn');
+  btn.disabled = true;
+  btn.textContent = 'COTANDO...';
+  document.getElementById('stats-bar').style.display = 'none';
+  renderLoading(ref);
+
+  try {
+    const resultado = demoMode ? gerarDemoData(ref) : await chamarAPI(ref);
+    renderResultados(resultado);
+  } catch(e) {
+    renderErro(e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'COTAR';
+  }
+}
+
+async function chamarAPI(ref) {
+  if (!API_URL) throw new Error("API_URL não configurada. Ative o modo demonstração ou configure o backend.");
+  const res = await fetch(`${API_URL}/cotar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ referencia: ref })
+  });
+  if (!res.ok) throw new Error(`Erro HTTP ${res.status}`);
+  return res.json();
+}
+
+function renderLoading(ref) {
+  document.getElementById('output').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <div class="pulse-text">CONSULTANDO DISTRIBUIDORES PARA <strong style="color:var(--accent)">${ref}</strong></div>
+    </div>`;
+}
+
+function renderErro(msg) {
+  document.getElementById('output').innerHTML = `
+    <div class="error-state" style="color:var(--danger)">
+      ✕ ERRO: ${msg}
+    </div>`;
+}
+
+function renderResultados(data) {
+  const bar = document.getElementById('stats-bar');
+  bar.style.display = 'flex';
+
+  const cotacoes = data.cotacoes || [];
+  const comPreco = cotacoes.filter(c => c.preco != null);
+  const menorPreco = comPreco.length ? Math.min(...comPreco.map(c => c.preco)) : null;
+
+  document.getElementById('stat-total').textContent = data.total_consultados;
+  document.getElementById('stat-estoque').textContent = data.total_com_estoque;
+  document.getElementById('stat-tempo').textContent = data.tempo_ms ? `${data.tempo_ms}ms` : '—';
+  document.getElementById('stat-menor').textContent = menorPreco ? `R$ ${fmtPreco(menorPreco)}` : '—';
+
+  if (!cotacoes.length) {
+    document.getElementById('output').innerHTML = `
+      <div class="empty-state">Nenhum resultado para <strong>${data.referencia}</strong></div>`;
+    return;
+  }
+
+  const html = `
+    <div class="results">
+      <div class="results-header">
+        <div>#</div><div>DISTRIBUIDOR</div><div>PREÇO</div><div>ESTOQUE</div><div>PRAZO</div><div style="text-align:right">Δ MENOR</div>
+      </div>
+      ${cotacoes.map((c, i) => renderCard(c, i + 1, menorPreco)).join('')}
+    </div>`;
+
+  document.getElementById('output').innerHTML = html;
+}
+
+function renderCard(c, rank, menorPreco) {
+  const isBest = c.melhor_preco;
+  const semEstoque = c.status === 'sem_estoque';
+  const isErro = c.status === 'erro' || c.status === 'nao_encontrado';
+
+  let cls = 'card';
+  if (isBest) cls += ' best';
+  if (semEstoque) cls += ' sem-estoque';
+  if (isErro) cls += ' erro';
+
+  const statusMap = {
+    sucesso:       ['status-ok',  '● DISPONÍVEL'],
+    sem_estoque:   ['status-sem', '○ SEM ESTOQUE'],
+    erro:          ['status-erro','✕ ERRO'],
+    nao_encontrado:['status-nao', '— NÃO ENCONTRADO'],
+  };
+  const [statusCls, statusTxt] = statusMap[c.status] || ['status-nao', c.status];
+
+  const precoHtml = c.preco != null
+    ? `<div class="preco">R$ ${fmtPreco(c.preco)}</div>`
+    : `<div class="preco none">—</div>`;
+
+  const estoqueHtml = c.estoque != null
+    ? `<div class="estoque ${c.estoque > 0 ? 'ok' : 'zero'}">${c.estoque} un</div>`
+    : `<div class="estoque">—</div>`;
+
+  const prazoHtml = c.prazo_entrega
+    ? `<div class="prazo">${c.prazo_entrega}</div>`
+    : `<div class="prazo">—</div>`;
+
+  let deltaHtml = '<div class="economia">—</div>';
+  if (c.preco != null && menorPreco != null) {
+    const diff = c.preco - menorPreco;
+    deltaHtml = diff === 0
+      ? `<div class="economia" style="color:var(--accent)">BASE</div>`
+      : `<div class="economia red">+R$ ${fmtPreco(diff)}</div>`;
+  }
+
+  return `
+    <div class="${cls}">
+      <div class="rank">${rank}</div>
+      <div>
+        <div class="distribuidor-nome">${c.distribuidor}</div>
+        <div class="distribuidor-status ${statusCls}">${statusTxt}${c.erro_msg ? ': '+c.erro_msg : ''}</div>
+      </div>
+      ${precoHtml}
+      ${estoqueHtml}
+      ${prazoHtml}
+      ${deltaHtml}
+    </div>`;
+}
+
+function fmtPreco(v) {
+  return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ─── DEMO DATA ─────────────────────────────────────────────────────────────
+function gerarDemoData(ref) {
+  const distribuidores = [
+    { nome: "AutoDist Nacional",   base: 89.90,  offset: 0,     estoque: 24,  prazo: "1 dia útil" },
+    { nome: "Peças & Cia",         base: 89.90,  offset: 8.50,  estoque: 6,   prazo: "2 dias úteis" },
+    { nome: "Distribuidora Sul",   base: 89.90,  offset: 15.00, estoque: 0,   prazo: "3 dias úteis" },
+    { nome: "MaxParts BR",         base: 89.90,  offset: 22.00, estoque: 55,  prazo: "1 dia útil" },
+    { nome: "Motor & Stock",       base: 89.90,  offset: -2.40, estoque: 3,   prazo: "4 dias úteis" },
+    { nome: "AutoPartes Nordeste", base: 89.90,  offset: 30.00, estoque: 12,  prazo: "2 dias úteis" },
+    { nome: "Nacional Peças",      base: null,   offset: 0,     estoque: null, prazo: null, status: "nao_encontrado" },
+    { nome: "Rodoparts Ltda",      base: null,   offset: 0,     estoque: null, prazo: null, status: "erro", erro_msg: "Timeout" },
+  ];
+
+  const seed = ref.split('').reduce((a,c) => a + c.charCodeAt(0), 0) % 30;
+
+  const cotacoes = distribuidores.map(d => {
+    if (d.status === 'nao_encontrado') return {
+      distribuidor: d.nome, preco: null, estoque: null, prazo_entrega: null,
+      status: 'nao_encontrado', melhor_preco: false
+    };
+    if (d.status === 'erro') return {
+      distribuidor: d.nome, preco: null, estoque: null, prazo_entrega: null,
+      status: 'erro', erro_msg: d.erro_msg, melhor_preco: false
+    };
+
+    const preco = +(d.base + d.offset + seed * 0.3).toFixed(2);
+    const status = d.estoque > 0 ? 'sucesso' : 'sem_estoque';
+    return {
+      distribuidor: d.nome, preco, estoque: d.estoque, prazo_entrega: d.prazo,
+      status, melhor_preco: false
+    };
+  });
+
+  // Ordenar e marcar
+  cotacoes.sort((a, b) => {
+    const pa = a.preco != null && a.estoque > 0 ? a.preco : a.preco != null ? a.preco + 9999 : 99999;
+    const pb = b.preco != null && b.estoque > 0 ? b.preco : b.preco != null ? b.preco + 9999 : 99999;
+    return pa - pb;
+  });
+
+  const comPreco = cotacoes.filter(c => c.preco != null);
+  if (comPreco.length) {
+    const menor = Math.min(...comPreco.map(c => c.preco));
+    comPreco.forEach(c => c.melhor_preco = c.preco === menor);
+  }
+
+  const comEstoque = cotacoes.filter(c => c.status === 'sucesso' && c.estoque > 0);
+  return {
+    referencia: ref,
+    cotacoes,
+    total_consultados: distribuidores.length,
+    total_com_estoque: comEstoque.length,
+    tempo_ms: 1240 + seed * 15,
+  };
+}
+</script>
+</body>
+</html>
