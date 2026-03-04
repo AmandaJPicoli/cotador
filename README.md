@@ -5,7 +5,7 @@ Consulta 4–10 portais simultaneamente com Playwright e retorna resultados orde
 
 ---
 
-## 📁 Estrutura
+## 📁 Structure
 
 ```
 cotador-autopecas/
