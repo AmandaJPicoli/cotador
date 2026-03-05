@@ -103,3 +103,57 @@ async def ofertas():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+@app.get("/debug-login")
+async def debug_login():
+    """
+    Dispara o login do WSRPT e retorna log detalhado + lista de screenshots gerados.
+    Acesse via: GET http://localhost:8000/debug-login
+    """
+    import logging
+    import io
+    import os
+
+    # Captura os logs em memória
+    log_stream = io.StringIO()
+    handler = logging.StreamHandler(log_stream)
+    handler.setLevel(logging.DEBUG)
+    wsrpt_logger = logging.getLogger("scrapers.wsrpt")
+    wsrpt_logger.setLevel(logging.DEBUG)
+    wsrpt_logger.addHandler(handler)
+
+    from scrapers.wsrpt import autenticar, URL_BASE
+    usuario = os.getenv("WSRPT_USUARIO", "")
+    senha   = os.getenv("WSRPT_SENHA",   "")
+
+    if not usuario:
+        return {"erro": "WSRPT_USUARIO não configurado. Salve as credenciais na aba Configurações primeiro."}
+
+    sessao = await autenticar(usuario, senha)
+
+    wsrpt_logger.removeHandler(handler)
+    logs = log_stream.getvalue().splitlines()
+
+    screenshots = [
+        f for f in [
+            "/tmp/wsrpt_1_login_carregado.png",
+            "/tmp/wsrpt_2_campos_preenchidos.png",
+            "/tmp/wsrpt_3_pos_login.png",
+            "/tmp/wsrpt_4_busca_dummy.png",
+            "/tmp/wsrpt_login_erro.png",
+        ]
+        if os.path.exists(f)
+    ]
+
+    return {
+        "sessao_ok":    sessao.ok(),
+        "pedido":       sessao.pedido or "(não capturado)",
+        "firma":        sessao.firma,
+        "local":        sessao.local,
+        "cookies":      list(sessao.cookies.keys()),
+        "logs":         logs,
+        "screenshots":  screenshots,
+        "instrucao":    "Se sessao_ok=false, verifique os logs acima e os screenshots em /tmp/wsrpt_*.png no servidor",
+    }
+
+

@@ -72,8 +72,7 @@ class SessaoWsrpt:
 
 async def autenticar(usuario: str, senha: str) -> SessaoWsrpt:
     """
-    Faz login via Playwright, intercepta as chamadas de API para capturar
-    o ID do pedido, firma e local. Retorna SessaoWsrpt preenchida.
+    Faz login via Playwright com screenshots de diagnóstico em cada etapa.
     """
     sessao = SessaoWsrpt()
 
@@ -85,7 +84,7 @@ async def autenticar(usuario: str, senha: str) -> SessaoWsrpt:
         )
         ctx = await browser.new_context(
             user_agent=HEADERS["User-Agent"],
-            viewport={"width": 1280, "height": 800},
+            viewport={"width": 1440, "height": 900},
             locale="pt-BR",
         )
         await ctx.add_init_script(
@@ -93,105 +92,227 @@ async def autenticar(usuario: str, senha: str) -> SessaoWsrpt:
         )
         page = await ctx.new_page()
 
-        # ── Intercepta requests para capturar o pedido ───────────────
+        # ── Intercepta requests/responses para capturar pedido e cookies ─
         async def on_request(request):
             url = request.url
-            # O pedido aparece nos parâmetros das chamadas de API após login
             if "/api/v2/ws/ws/" in url:
                 params = _extrair_params_url(url)
                 pedido = params.get("pedido") or params.get("id", "")
                 firma  = params.get("firma", sessao.firma)
-                local  = params.get("local", sessao.local)
+                local_ = params.get("local", sessao.local)
                 if pedido and not sessao.pedido:
                     sessao.pedido = pedido
                     sessao.firma  = firma
-                    sessao.local  = local
-                    logger.info(f"[WSRPT] Sessão capturada: pedido={pedido} firma={firma} local={local}")
+                    sessao.local  = local_
+                    logger.info(f"[WSRPT] Sessão capturada via request: pedido={pedido}")
 
-        page.on("request", on_request)
+        async def on_response(response):
+            url = response.url
+            # Captura tokens de autenticação na resposta
+            if any(k in url.lower() for k in ["login", "auth", "token", "session"]):
+                try:
+                    ct = response.headers.get("content-type", "")
+                    if "json" in ct:
+                        body = await response.json()
+                        # Procura token em vários formatos
+                        token = (body.get("token") or body.get("access_token")
+                                 or body.get("accessToken") or body.get("jwt"))
+                        if token:
+                            sessao.cookies["Authorization"] = f"Bearer {token}"
+                            logger.info(f"[WSRPT] Token JWT capturado via response")
+                except Exception:
+                    pass
+
+        page.on("request",  on_request)
+        page.on("response", on_response)
 
         try:
-            # Navega para login
+            # ── ETAPA 1: Carrega login ────────────────────────────────
+            logger.info("[WSRPT] Navegando para login...")
             await page.goto(URL_LOGIN, wait_until="domcontentloaded", timeout=30000)
-            await page.wait_for_load_state("networkidle", timeout=15000)
-            await asyncio.sleep(1)
+            await asyncio.sleep(3)  # espera SPA renderizar
+            await page.screenshot(path="/tmp/wsrpt_1_login_carregado.png")
 
-            # Preenche e-mail
-            for sel in ["input[type='email']", "input[name='Email']",
-                        "#Email", "#email", "input[placeholder*='mail' i]"]:
+            html_login = await page.content()
+            logger.info(f"[WSRPT] HTML login ({len(html_login)} chars), URL: {page.url}")
+
+            # Loga todos os inputs encontrados para diagnóstico
+            inputs = await page.query_selector_all("input")
+            for inp in inputs:
+                name = await inp.get_attribute("name")
+                id_  = await inp.get_attribute("id")
+                typ  = await inp.get_attribute("type")
+                ph   = await inp.get_attribute("placeholder")
+                logger.info(f"[WSRPT] INPUT encontrado: name={name!r} id={id_!r} type={typ!r} placeholder={ph!r}")
+
+            # ── ETAPA 2: Preenche e-mail ──────────────────────────────
+            email_preenchido = False
+            sels_email = [
+                "input[type='email']",
+                "input[name='Email']",
+                "input[name='email']",
+                "input[name='username']",
+                "input[name='Username']",
+                "input[name='login']",
+                "#Email", "#email", "#username", "#login",
+                "input[placeholder*='mail' i]",
+                "input[placeholder*='usu' i]",
+                "input[placeholder*='login' i]",
+                "input:not([type='password'])",  # qualquer input que não seja senha
+            ]
+            for sel in sels_email:
                 try:
-                    await page.wait_for_selector(sel, timeout=3000)
-                    await page.fill(sel, usuario)
-                    logger.debug(f"[WSRPT] E-mail preenchido: {sel}")
-                    break
+                    el = await page.wait_for_selector(sel, timeout=3000)
+                    if el:
+                        await el.click()
+                        await el.fill(usuario)
+                        email_preenchido = True
+                        logger.info(f"[WSRPT] Email preenchido com seletor: {sel}")
+                        break
                 except Exception:
                     pass
 
-            # Preenche senha
-            for sel in ["input[type='password']", "input[name='Password']",
-                        "#Password", "#password"]:
+            if not email_preenchido:
+                logger.error("[WSRPT] FALHA: nenhum campo de email encontrado!")
+                await page.screenshot(path="/tmp/wsrpt_login_erro.png")
+
+            # ── ETAPA 3: Preenche senha ───────────────────────────────
+            senha_preenchida = False
+            sels_senha = [
+                "input[type='password']",
+                "input[name='Password']",
+                "input[name='password']",
+                "input[name='senha']",
+                "#Password", "#password", "#senha",
+            ]
+            for sel in sels_senha:
                 try:
-                    await page.wait_for_selector(sel, timeout=3000)
-                    await page.fill(sel, senha)
-                    logger.debug(f"[WSRPT] Senha preenchida: {sel}")
-                    break
+                    el = await page.wait_for_selector(sel, timeout=3000)
+                    if el:
+                        await el.click()
+                        await el.fill(senha)
+                        senha_preenchida = True
+                        logger.info(f"[WSRPT] Senha preenchida com seletor: {sel}")
+                        break
                 except Exception:
                     pass
 
-            # Submit
-            for sel in ["button[type='submit']", "input[type='submit']",
-                        "button:has-text('Entrar')", "button:has-text('Login')",
-                        "button:has-text('Acessar')"]:
+            if not senha_preenchida:
+                logger.error("[WSRPT] FALHA: nenhum campo de senha encontrado!")
+
+            await page.screenshot(path="/tmp/wsrpt_2_campos_preenchidos.png")
+
+            # ── ETAPA 4: Submit ───────────────────────────────────────
+            submit_clicado = False
+            sels_submit = [
+                "button[type='submit']",
+                "input[type='submit']",
+                "button:has-text('Entrar')",
+                "button:has-text('Login')",
+                "button:has-text('Acessar')",
+                "button:has-text('Confirmar')",
+                "button:has-text('OK')",
+                ".btn-login", ".btn-primary", ".btn-submit",
+                "form button",  # qualquer botão dentro do form
+            ]
+            for sel in sels_submit:
                 try:
-                    await page.click(sel, timeout=3000)
-                    logger.debug(f"[WSRPT] Submit clicado: {sel}")
-                    break
+                    el = await page.wait_for_selector(sel, timeout=2000)
+                    if el:
+                        await el.click()
+                        submit_clicado = True
+                        logger.info(f"[WSRPT] Submit clicado: {sel}")
+                        break
                 except Exception:
                     pass
 
-            await page.wait_for_load_state("networkidle", timeout=20000)
-            await asyncio.sleep(3)
-
-            # Captura cookies da sessão
-            cookies_list = await ctx.cookies()
-            sessao.cookies = {c["name"]: c["value"] for c in cookies_list}
-
-            # Se ainda não capturou o pedido, faz uma busca dummy para forçar
-            if not sessao.pedido:
-                logger.debug("[WSRPT] Pedido não capturado ainda — tentando busca dummy")
-                for sel in ["input[type='search']", "input[placeholder*='busca' i]",
-                             "input[placeholder*='referência' i]", "input[placeholder*='peça' i]",
-                             "input[name='search']", "#search"]:
+            if not submit_clicado:
+                # Tenta pressionar Enter no campo de senha
+                logger.warning("[WSRPT] Botão não encontrado — tentando Enter no campo senha")
+                for sel in sels_senha:
                     try:
-                        await page.wait_for_selector(sel, timeout=3000)
-                        await page.fill(sel, "filtro")
                         await page.press(sel, "Enter")
-                        await page.wait_for_load_state("networkidle", timeout=10000)
-                        await asyncio.sleep(2)
+                        submit_clicado = True
                         break
                     except Exception:
                         pass
 
-            # Última tentativa: busca o pedido no HTML da página
+            # ── ETAPA 5: Aguarda resultado ────────────────────────────
+            await asyncio.sleep(2)
+            try:
+                await page.wait_for_load_state("networkidle", timeout=20000)
+            except Exception:
+                pass
+            await asyncio.sleep(3)
+
+            await page.screenshot(path="/tmp/wsrpt_3_pos_login.png")
+            logger.info(f"[WSRPT] URL após login: {page.url}")
+
+            # Captura cookies
+            cookies_list = await ctx.cookies()
+            sessao.cookies.update({c["name"]: c["value"] for c in cookies_list})
+            logger.info(f"[WSRPT] Cookies: {list(sessao.cookies.keys())}")
+
+            # ── ETAPA 6: Busca dummy para forçar captura do pedido ────
+            if not sessao.pedido:
+                logger.info("[WSRPT] Pedido não capturado — tentando busca dummy...")
+                sels_busca = [
+                    "input[type='search']",
+                    "input[placeholder*='busca' i]",
+                    "input[placeholder*='referência' i]",
+                    "input[placeholder*='peça' i]",
+                    "input[placeholder*='produto' i]",
+                    "input[placeholder*='pesquisa' i]",
+                    "input[name='search']", "input[name='q']",
+                    "#search", "#busca",
+                ]
+                for sel in sels_busca:
+                    try:
+                        el = await page.wait_for_selector(sel, timeout=3000)
+                        if el:
+                            await el.fill("filtro")
+                            await el.press("Enter")
+                            await asyncio.sleep(3)
+                            try:
+                                await page.wait_for_load_state("networkidle", timeout=8000)
+                            except Exception:
+                                pass
+                            await page.screenshot(path="/tmp/wsrpt_4_busca_dummy.png")
+                            logger.info(f"[WSRPT] Busca dummy feita com: {sel}")
+                            break
+                    except Exception:
+                        pass
+
+            # ── ETAPA 7: Extrai pedido do HTML se ainda não tem ───────
             if not sessao.pedido:
                 html = await page.content()
-                match = re.search(r'pedido["\s:=]+(["\']?)(\d{10,})\1', html)
-                if match:
-                    sessao.pedido = match.group(2)
-                    logger.info(f"[WSRPT] Pedido extraído do HTML: {sessao.pedido}")
+                # Padrões: pedido=123456, "pedido":"123456", pedido: 123456
+                patterns = [
+                    r'pedido["' + "'" + r'\s:=]+["' + "'" + r'\s]*(\d{8,})',
+                    r'"id"\s*:\s*"([\w]{8,})"',
+                    r'requestId["' + "'" + r'\s:=]+["' + "'" + r'\s]*([\w]{6,})',
+                ]
+                for pat in patterns:
+                    match = re.search(pat, html)
+                    if match:
+                        sessao.pedido = match.group(1)
+                        logger.info(f"[WSRPT] Pedido extraído do HTML: {sessao.pedido}")
+                        break
+
+                if not sessao.pedido:
+                    logger.error("[WSRPT] Pedido não encontrado. Verifique /tmp/wsrpt_*.png")
 
         except Exception as e:
             logger.error(f"[WSRPT] Erro no login: {e}")
-            await page.screenshot(path="/tmp/wsrpt_login_erro.png")
+            try:
+                await page.screenshot(path="/tmp/wsrpt_login_erro.png")
+            except Exception:
+                pass
 
         await browser.close()
 
     return sessao
 
-
-# ══════════════════════════════════════════════════════════
-#  API — busca de produtos
-# ══════════════════════════════════════════════════════════
 
 async def buscar_produtos(sessao: SessaoWsrpt, referencia: str) -> list[dict]:
     """
