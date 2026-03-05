@@ -2,8 +2,9 @@
 API de Cotação de Autopeças
 Endpoints:
   POST /cotar          — dispara cotação em todos os distribuidores
+  GET  /ofertas        — retorna produtos em oferta do WSRPT
   GET  /distribuidores — lista distribuidores registrados
-  GET  /health         — healthcheck para Railway/Render
+  GET  /health         — healthcheck
 """
 
 from fastapi import FastAPI, HTTPException
@@ -14,21 +15,23 @@ load_dotenv()
 
 from models import SolicitacaoCotacao, ResultadoCotacao, Distribuidor
 from scrapers.manager import CotacaoManager, SCRAPERS_REGISTRADOS
+from scrapers.wsrpt import WsrptScraper
 
 app = FastAPI(
     title="Cotador Autopeças B2B",
     description="API para cotação paralela em distribuidores B2B",
-    version="1.0.0",
+    version="2.0.0",
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção: restrinja para seu domínio frontend
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-manager = CotacaoManager()
+manager      = CotacaoManager()
+_wsrpt_inst  = WsrptScraper()   # instância única — reutiliza sessão entre requests
 
 
 @app.get("/health")
@@ -52,11 +55,21 @@ async def cotar(solicitacao: SolicitacaoCotacao):
     resultado = await manager.cotar(
         referencia=solicitacao.referencia,
         distribuidores=solicitacao.distribuidores,
+        ignorar_sellers=solicitacao.ignorar_sellers,
     )
     return resultado
 
 
-# ── Dev local ────────────────────────────────────────────────────────────────
+@app.get("/ofertas")
+async def ofertas():
+    """Retorna todos os produtos em oferta do WSRPT."""
+    cotacoes = await _wsrpt_inst.ofertas()
+    return {
+        "cotacoes": [c.model_dump() for c in cotacoes],
+        "total": len(cotacoes),
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
