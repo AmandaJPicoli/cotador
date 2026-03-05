@@ -744,6 +744,9 @@ table.ot td.r { text-align: right; }
       <span class="ico">📋</span> Orçamento
       <span class="nav-badge show" id="nav-badge">0</span>
     </button>
+    <button class="nav-item" onclick="setTab('ofertas')">
+      <span class="ico">🏷</span> Ofertas
+    </button>
     <button class="nav-item" onclick="setTab('config')">
       <span class="ico">⚙</span> Configurações
     </button>
@@ -843,7 +846,41 @@ table.ot td.r { text-align: right; }
   </div>
 
   <!-- CONFIG -->
-  <div id="panel-config" class="panel">
+  <!-- OFERTAS -->
+  <div id="panel-ofertas" class="panel">
+  <div class="cotacao-wrap">
+
+    <div class="searchbar" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--ink)">Ofertas WSRPT Peças</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:2px">Produtos em promoção disponíveis no distribuidor</div>
+        </div>
+        <button class="btn btn-teal" style="margin-left:auto" onclick="carregarOfertas()">
+          🔄 Atualizar ofertas
+        </button>
+      </div>
+    </div>
+
+    <div class="stats-strip" id="oferta-stats" style="display:none">
+      <div class="stat-item"><span class="stat-n" id="of-total">—</span><span class="stat-l">produtos</span></div>
+      <div class="stat-item"><span class="stat-n" id="of-menor" style="color:var(--teal)">—</span><span class="stat-l">menor preço</span></div>
+    </div>
+
+    <div id="ofertas-area">
+      <div class="results-table-wrap fade-up">
+        <div class="state-box">
+          <div class="state-icon">🏷</div>
+          <div class="state-h">Ofertas do WSRPT</div>
+          <div class="state-p">Clique em "Atualizar ofertas" para buscar os produtos em promoção</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+    <div id="panel-config" class="panel">
   <div class="cfg-wrap">
 
     <div class="cfg-card">
@@ -885,6 +922,7 @@ table.ot td.r { text-align: right; }
 // ═══════════════════════════════════════════════════
 const DISTS = [
   {id:'pitstop',    nome:'PitStop',     tipo:'mkt', st:'ok',   auth:false},
+  {id:'wsrpt',      nome:'WSRPT Peças', tipo:'b2b', st:'ok',   auth:true},
   {id:'sama',       nome:'SAMA',        tipo:'b2b', st:'ok',   auth:true},
   {id:'pellegrino', nome:'Pellegrino',  tipo:'b2b', st:'ok',   auth:true},
   {id:'roles',      nome:'Roles',       tipo:'b2b', st:'ok',   auth:true},
@@ -903,6 +941,7 @@ const DISTS = [
 const PAGES = {
   cotacao:   { title:'Buscar Peças',   sub:'Consulte preços em todos os distribuidores' },
   orcamento: { title:'Orçamento',      sub:'Monte e imprima seu orçamento' },
+  ofertas:   { title:'Ofertas WSRPT',  sub:'Produtos em promoção — clique em Orçar para adicionar' },
   config:    { title:'Configurações',  sub:'Credenciais e ajustes do sistema' },
 };
 
@@ -936,11 +975,11 @@ window.addEventListener('DOMContentLoaded', () => {
 // TABS
 // ═══════════════════════════════════════════════════
 function setTab(t) {
-  ['cotacao','orcamento','config'].forEach(p => {
+  ['cotacao','orcamento','ofertas','config'].forEach(p => {
     document.getElementById('panel-'+p).classList.toggle('active', p===t);
   });
   document.querySelectorAll('.nav-item').forEach((b,i) => {
-    b.classList.toggle('active', ['cotacao','orcamento','config'][i]===t);
+    b.classList.toggle('active', ['cotacao','orcamento','ofertas','config'][i]===t);
   });
   document.getElementById('page-title').textContent = PAGES[t].title;
   document.getElementById('page-sub').textContent   = PAGES[t].sub;
@@ -1431,6 +1470,120 @@ function demoData(ref) {
 
   return {referencia:ref,cotacoes:cs,total_consultados:cs.length,total_com_estoque:cs.filter(c=>c.status==='sucesso').length,tempo_ms:1150+seed*11};
 }
+
+// ═══════════════════════════════════════════════════
+// OFERTAS
+// ═══════════════════════════════════════════════════
+async function carregarOfertas() {
+  const area = document.getElementById('ofertas-area');
+  const strip = document.getElementById('oferta-stats');
+  strip.classList.remove('show');
+
+  area.innerHTML = `
+    <div class="results-table-wrap fade-up">
+      <div class="state-box"><div class="spinner"></div>
+        <div class="state-p">Buscando ofertas no WSRPT…</div>
+      </div>
+    </div>`;
+
+  const cfg = ls.get('cfg', {});
+  if (!cfg.api_url) {
+    area.innerHTML = `
+      <div class="results-table-wrap fade-up">
+        <div class="state-box">
+          <div class="state-icon">⚙</div>
+          <div class="state-h">Backend não configurado</div>
+          <div class="state-p">Configure a URL da API em <button class="btn-link" onclick="setTab('config')">Configurações</button> para usar esta funcionalidade.</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${cfg.api_url}/ofertas`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    renderOfertas(data.cotacoes || []);
+  } catch(e) {
+    area.innerHTML = `
+      <div class="results-table-wrap fade-up">
+        <div class="state-box">
+          <div class="state-icon">⚠️</div>
+          <div class="state-h">Erro ao buscar ofertas</div>
+          <div class="state-p">${esc(e.message)}</div>
+        </div>
+      </div>`;
+  }
+}
+
+function renderOfertas(cotacoes) {
+  const area  = document.getElementById('ofertas-area');
+  const strip = document.getElementById('oferta-stats');
+
+  if (!cotacoes.length) {
+    area.innerHTML = `
+      <div class="results-table-wrap fade-up">
+        <div class="state-box">
+          <div class="state-icon">📭</div>
+          <div class="state-h">Nenhuma oferta encontrada</div>
+          <div class="state-p">O WSRPT não retornou produtos em promoção no momento</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const comPreco = cotacoes.filter(c => c.preco != null);
+  const menor = comPreco.length ? Math.min(...comPreco.map(c => c.preco)) : null;
+
+  strip.classList.add('show');
+  document.getElementById('of-total').textContent = cotacoes.length;
+  document.getElementById('of-menor').textContent = menor ? 'R$ ' + fmtN(menor) : '—';
+
+  const rows = cotacoes.map((c, i) => {
+    const best = c.preco === menor;
+    const estCls = !c.estoque ? '' : c.estoque > 10 ? 's-hi' : c.estoque > 0 ? 's-mid' : 's-zero';
+    const addDisabled = !c.preco || c.status === 'erro' || c.status === 'nao_encontrado';
+
+    return `<tr class="${best ? 'tr-best' : ''}">
+      <td class="td-rank">${i+1}${best ? '<span class="best-chip">★</span>' : ''}</td>
+      <td>
+        <div class="prod-name">${esc(c.codigo_produto || '—')}</div>
+        <div style="margin-top:3px"><span class="badge b-ok">● Oferta WSRPT</span></div>
+      </td>
+      <td class="td-price">
+        ${c.preco != null
+          ? `<div class="price-main">R$ ${fmtN(c.preco)}</div>`
+          : `<span class="price-none">—</span>`}
+      </td>
+      <td class="td-stock">
+        ${c.estoque != null
+          ? `<span class="stock-n ${estCls}">${c.estoque}</span> <span class="muted">un</span>`
+          : `<span class="muted">—</span>`}
+      </td>
+      <td class="td-act">
+        <button class="btn-add" ${addDisabled ? 'disabled' : ''} id="ofbtn-${i}"
+          onclick="addToOrc(${JSON.stringify(c).replace(/"/g,'&quot;')}, '${escA(c.codigo_produto||'')}', 'ofbtn-${i}')">
+          + Orçar
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="results-table-wrap fade-up">
+      <table class="rt">
+        <thead><tr>
+          <th>#</th>
+          <th>Produto</th>
+          <th class="r">Preço</th>
+          <th class="r">Estoque</th>
+          <th></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
 </script>
 </body>
 </html>
