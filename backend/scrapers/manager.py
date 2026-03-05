@@ -1,8 +1,5 @@
 """
 Manager de Scrapers — orquestra cotações em paralelo
-Suporta dois tipos de scraper:
-  1. BaseScraper (Playwright) — portais B2B com login
-  2. Marketplace (HTTP puro)  — ex: PitStop via API VTEX, retorna lista de cotações
 """
 import asyncio
 import time
@@ -12,15 +9,13 @@ from playwright.async_api import async_playwright
 from models import Cotacao, ResultadoCotacao, StatusCotacao
 from scrapers.base_scraper import BaseScraper
 from scrapers.pitstop import PitStopScraper
+from scrapers.wsrpt import WsrptScraper
 
-# ── Registre aqui todos os seus scrapers ───────────────────────────────────
-# from scrapers.distribuidor_a import DistribuidorA
-# from scrapers.distribuidor_b import DistribuidorB
-
+# ── Registre aqui todos os seus scrapers ──────────────────────────────────
 SCRAPERS_REGISTRADOS = [
-    PitStopScraper,          # ← HTTP puro, sem login
+    PitStopScraper,   # Marketplace VTEX — sem login
+    WsrptScraper,     # WSRPT Peças — login JWT
     # DistribuidorA,
-    # DistribuidorB,
 ]
 
 logger = logging.getLogger(__name__)
@@ -35,6 +30,7 @@ class CotacaoManager:
         self,
         referencia: str,
         distribuidores: list[str] | None = None,
+        ignorar_sellers: list[str] | None = None,
     ) -> ResultadoCotacao:
         inicio = time.monotonic()
         referencia = referencia.strip()
@@ -46,14 +42,14 @@ class CotacaoManager:
         if not classes:
             return ResultadoCotacao(referencia=referencia)
 
-        # Separa scrapers por tipo
         scrapers_playwright = [c for c in classes if not getattr(c, "is_marketplace", False)]
         scrapers_api        = [c for c in classes if getattr(c, "is_marketplace", False)]
 
-        tarefas_api = [cls().cotar_multiplo(referencia) for cls in scrapers_api]
+        tarefas_api = [cls().cotar_multiplo(referencia, ignorar_sellers) for cls in scrapers_api]
 
         cotacoes_limpas: list[Cotacao] = []
-        resultados_pw = []
+        resultados_pw  = []
+        resultados_api = []
 
         if scrapers_playwright:
             async with async_playwright() as pw:
@@ -62,7 +58,7 @@ class CotacaoManager:
                     args=["--no-sandbox", "--disable-dev-shm-usage"],
                 )
                 instancias_pw = []
-                tarefas_pw = []
+                tarefas_pw    = []
                 for cls in scrapers_playwright:
                     inst = cls()
                     await inst.inicializar(browser)
@@ -78,7 +74,6 @@ class CotacaoManager:
                     await inst.finalizar()
                 await browser.close()
         else:
-            # Sem Playwright — só chamadas de API
             resultados_api = await asyncio.gather(*tarefas_api, return_exceptions=True)
 
         # Processa Playwright
@@ -92,7 +87,7 @@ class CotacaoManager:
             else:
                 cotacoes_limpas.append(r)
 
-        # Processa API (lista de Cotacao por scraper)
+        # Processa API / marketplace
         for i, r in enumerate(resultados_api):
             nome = scrapers_api[i].DISTRIBUIDOR_NOME
             if isinstance(r, Exception):
