@@ -1367,7 +1367,7 @@ function togglePwd(id, btn) {
   btn.textContent = el.type==='password'?'👁':'🙈';
 }
 
-function saveConfig() {
+async function saveConfig() {
   const cfg = ls.get('cfg',{});
   cfg.api_url = document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
   DISTS.forEach(d => {
@@ -1379,6 +1379,29 @@ function saveConfig() {
     }
   });
   ls.set('cfg',cfg);
+
+  // Envia credenciais para o backend sincronizar
+  if (cfg.api_url) {
+    try {
+      const credenciais = {};
+      DISTS.filter(d => d.auth && cfg[d.id]?.ativo !== false).forEach(d => {
+        if (cfg[d.id]?.usuario || cfg[d.id]?.senha) {
+          credenciais[d.id] = {
+            usuario: cfg[d.id]?.usuario || '',
+            senha:   cfg[d.id]?.senha   || '',
+          };
+        }
+      });
+      await fetch(`${cfg.api_url}/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credenciais }),
+      });
+    } catch(e) {
+      console.warn('Não foi possível sincronizar credenciais com o backend:', e.message);
+    }
+  }
+
   const ack = document.getElementById('save-ack');
   ack.classList.add('show');
   setTimeout(()=>ack.classList.remove('show'),2500);
